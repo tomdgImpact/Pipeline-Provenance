@@ -1,0 +1,9 @@
+# Default owner for everything not matched below.
+*                       @tomdgImpact
+
+# Trust-boundary surfaces. Changes here require security review before merge.
+/docs/THREAT_MODEL.md   @tomdgImpact
+/docs/adr/              @tomdgImpact
+/.github/workflows/     @tomdgImpact
+/policy/                @tomdgImpact
+/tests/security/        @tomdgImpact
