@@ -1,0 +1,54 @@
+{
+  "exit_code": 1,
+  "invariants": {
+    "I1": "unverified",
+    "I2": "unverified",
+    "I3": "unverified",
+    "I4": "unverified"
+  },
+  "findings": [
+    {
+      "rule_id": "I1/unparsable-workflow",
+      "path": ".github/workflows/broken.yml",
+      "line": 11,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": []
+    },
+    {
+      "rule_id": "I2/unparsable-workflow",
+      "path": ".github/workflows/broken.yml",
+      "line": 11,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": []
+    },
+    {
+      "rule_id": "I3/unparsable-workflow",
+      "path": ".github/workflows/broken.yml",
+      "line": 11,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": []
+    },
+    {
+      "rule_id": "I4/unparsable-workflow",
+      "path": ".github/workflows/broken.yml",
+      "line": 11,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": []
+    }
+  ],
+  "unverifiable": [
+    ".github/workflows/broken.yml does not parse; no invariant could be assessed for it",
+    "I1: Pinning is an integrity control, not an identity control: a reference pinned to the wrong thing stays wrong.",
+    "I2: Scope held is scope every step in the job can use. This module cannot tell whether a scope a job legitimately needs is used safely.",
+    "I3: No job in this repository produces a deployable artifact.",
+    "I4: I4 is assessed by declaration only: this tool reads what a workflow asks for, and cannot confirm the runner platform enforced it.",
+    "I4 is assessed by declaration only: this tool reads what a workflow asks for, and cannot confirm the runner platform enforced it."
+  ],
+  "workflows_examined": [
+    ".github/workflows/broken.yml"
+  ]
+}

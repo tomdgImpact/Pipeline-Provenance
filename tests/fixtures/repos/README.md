@@ -18,6 +18,12 @@ with itself".
 | `no-workflows` | Nothing to audit is not the same as nothing found |
 | `monorepo` | An aggregate score must not hide one critical behind many passes |
 
-The end-to-end suite (T017) adds an `expected.json` per fixture and asserts
-**equality** against it, not containment, so a new false positive fails the
-build.
+Each fixture carries an `expected.json` — the full finding set with locations,
+severities and assessments, plus the invariant statuses and the exit code. The
+end-to-end suite asserts **equality** against it, not containment, so a new
+false positive fails the build just as loudly as a missed detection.
+
+Regenerating `expected.json` from the tool's own output is only legitimate
+because `intent.md` came first and the unit suites already assert the semantics
+against it. The `expected.json` files are a regression lock, not the
+specification.

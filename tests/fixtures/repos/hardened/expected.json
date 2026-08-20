@@ -1,0 +1,17 @@
+{
+  "exit_code": 0,
+  "invariants": {
+    "I1": "passing",
+    "I2": "passing",
+    "I3": "passing",
+    "I4": "passing"
+  },
+  "findings": [],
+  "unverifiable": [
+    "I4 is assessed by declaration only: this tool reads what a workflow asks for, and cannot confirm the runner platform enforced it."
+  ],
+  "workflows_examined": [
+    ".github/workflows/build.yml",
+    ".github/workflows/deploy.yml"
+  ]
+}

@@ -19,20 +19,20 @@ are ticked.
 **Exit criterion:** the project's own gates run and pass against itself, and the
 adversarial step fails if the suite ever collects nothing. ✅
 
-## Phase 1 — Audit an existing repository (US1, MVP)
+## Phase 1 — Audit an existing repository (US1, MVP) ✅
 
-- [ ] Result model and JSON Schema (T004, T005)
-- [ ] Fixture repositories with exact expected findings (T006, T007)
-- [ ] Reference discovery with file and line provenance (T008)
-- [ ] Rules for the four invariants (T009–T012)
-- [ ] `ppv audit` with the documented exit-code contract (T013)
-- [ ] JSON, SARIF and self-contained HTML renderers (T014, T015)
-- [ ] Browser suite for the HTML report, and the CI gate that runs it (T016)
-- [ ] End-to-end CLI suite across every fixture (T017)
+- [x] Result model and JSON Schema (T004, T005)
+- [x] Fixture repositories with exact expected findings (T006, T007)
+- [x] Reference discovery with file and line provenance (T008)
+- [x] Rules for the four invariants (T009–T012)
+- [x] `ppv audit` with the documented exit-code contract (T013)
+- [x] JSON, SARIF and self-contained HTML renderers (T014, T015)
+- [x] Browser suite for the HTML report, and the CI gate that runs it (T016)
+- [x] End-to-end CLI suite across every fixture (T017)
 
 **Exit criterion:** `ppv audit` reports the exact expected finding set on the
 fixture corpus — equality, not containment — and reports `unverified` rather
-than passing wherever it cannot assess an invariant.
+than passing wherever it cannot assess an invariant. ✅
 
 ## Phase 2 — Adopt the hardened pipeline (US2)
 

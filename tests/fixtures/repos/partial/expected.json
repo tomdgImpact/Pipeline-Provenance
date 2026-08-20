@@ -1,0 +1,78 @@
+{
+  "exit_code": 1,
+  "invariants": {
+    "I1": "failing",
+    "I2": "failing",
+    "I3": "failing",
+    "I4": "failing"
+  },
+  "findings": [
+    {
+      "rule_id": "I3/no-provenance",
+      "path": ".github/workflows/build.yml",
+      "line": 10,
+      "severity": "high",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I2/excessive-permission",
+      "path": ".github/workflows/build.yml",
+      "line": 13,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-01"
+      ]
+    },
+    {
+      "rule_id": "I3/no-admission-verification",
+      "path": ".github/workflows/build.yml",
+      "line": null,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I3/no-sbom",
+      "path": ".github/workflows/build.yml",
+      "line": 10,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I4/no-egress-policy",
+      "path": ".github/workflows/build.yml",
+      "line": 10,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-08",
+        "T-09"
+      ]
+    },
+    {
+      "rule_id": "I1/missing-version-comment",
+      "path": ".github/workflows/build.yml",
+      "line": 20,
+      "severity": "low",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-02"
+      ]
+    }
+  ],
+  "unverifiable": [
+    "I4 is assessed by declaration only: this tool reads what a workflow asks for, and cannot confirm the runner platform enforced it."
+  ],
+  "workflows_examined": [
+    ".github/workflows/build.yml"
+  ]
+}
