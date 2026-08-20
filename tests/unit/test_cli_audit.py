@@ -80,8 +80,8 @@ class TestRemote:
         assert "not implemented" in result.output
 
 
-def test_verify_is_still_absent() -> None:
-    """A command that returns nothing reads to a caller as a clean result."""
-    code, output = _run("verify")
+def test_an_unknown_command_is_an_error() -> None:
+    """No command silently accepts an argument it does not understand."""
+    code, output = _run("attest")
     assert code != 0
     assert "No such command" in output

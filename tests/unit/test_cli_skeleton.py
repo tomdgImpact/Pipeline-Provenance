@@ -31,12 +31,14 @@ def test_doctor_names_every_unavailable_capability() -> None:
     assert "admission verification" in result.output
 
 
-def test_unimplemented_commands_are_not_registered() -> None:
-    """`verify` must not exist until it works.
+def test_only_working_commands_are_registered() -> None:
+    """A registered command that returns an empty result reads as a clean one.
 
-    A registered command that returns an empty result reads as a clean result.
-    `audit` graduated out of this list when it started doing something.
+    Every command in this list does something. `audit`, `gate` and `verify`
+    each graduated out of the unregistered set when they started working;
+    nothing was ever registered ahead of its implementation.
     """
-    result = CliRunner().invoke(main, ["verify"])
-    assert result.exit_code != 0
-    assert "No such command" in result.output
+    result = CliRunner().invoke(main, ["--help"])
+    assert result.exit_code == 0
+    registered = {"audit", "gate", "verify", "doctor"}
+    assert registered <= set(result.output.split())

@@ -115,6 +115,14 @@ jobs:
             echo "::error::SBOM missing. The attestation set is atomic."
             exit 1
           }
+      # Advisory only. This runs inside the build job — the untrusted execution
+      # context the whole design assumes is compromised — so it shortens the
+      # feedback loop and proves nothing. The decision is made at the admission
+      # point (ADR-0004), which is the consumer's, not ours.
+      - name: Advisory attestation check
+        run: |
+          echo "::notice title=Advisory::Build-time verification proves nothing;" \
+               "the decision belongs at the admission point (ADR-0004)."
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-output

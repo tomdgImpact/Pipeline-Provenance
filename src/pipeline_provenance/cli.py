@@ -17,6 +17,7 @@ from pathlib import Path
 import click
 
 from pipeline_provenance import SCHEMA_VERSION, __version__
+from pipeline_provenance.attest import verify as verify_module
 from pipeline_provenance.audit import audit as run_audit
 from pipeline_provenance.model import (
     Assessment,
@@ -232,6 +233,96 @@ def gate(path: Path, fail_on: str, allow_unverified: bool) -> None:
 
 
 @main.command()
+@click.argument("subject", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option(
+    "--provenance",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="In-toto SLSA provenance statement.",
+)
+@click.option(
+    "--sbom",
+    "sbom_path",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="CycloneDX SBOM. Required: the attestation set is atomic.",
+)
+@click.option(
+    "--expected-identity",
+    default=None,
+    help=(
+        "Signer identity this admission point accepts. Falls back to "
+        "PPV_EXPECTED_SIGNER_IDENTITY. There is no default."
+    ),
+)
+@click.option(
+    "--expected-issuer",
+    default=verify_module.DEFAULT_ISSUER,
+    show_default=True,
+    help="OIDC issuer the signing certificate must come from.",
+)
+@click.option(
+    "--deny-component",
+    "denied",
+    multiple=True,
+    help="Component name that must not appear in the SBOM. Repeatable.",
+)
+@click.option(
+    "--advisory",
+    is_flag=True,
+    default=False,
+    help=(
+        "Report without gating. For use inside a build job, where verification "
+        "runs in the context it is checking and therefore proves nothing."
+    ),
+)
+def verify(
+    subject: Path,
+    provenance: Path,
+    sbom_path: Path,
+    expected_identity: str | None,
+    expected_issuer: str,
+    denied: tuple[str, ...],
+    advisory: bool,
+) -> None:
+    """Decide whether SUBJECT may be deployed.
+
+    Refuses when the expected identity is unset, when the signature backend is
+    unavailable, when the attestation does not cover this artifact, or when the
+    signer is not the expected one. There is no permissive path.
+    """
+    identity = expected_identity or os.environ.get("PPV_EXPECTED_SIGNER_IDENTITY")
+
+    try:
+        attestation = verify_module.load_attestation(provenance, sbom_path)
+    except ValueError as error:
+        raise click.ClickException(str(error)) from error
+
+    policy = verify_module.Policy(
+        expected_identity=identity or "",
+        expected_issuer=expected_issuer,
+        denied_components=denied,
+    )
+    decision = verify_module.verify(subject, attestation, policy)
+
+    if advisory:
+        click.echo(
+            "ADVISORY — this check ran inside the build context it is checking. "
+            "It shortens the feedback loop and proves nothing (ADR-0004)."
+        )
+
+    click.echo(f"subject: {decision.subject}")
+    for name, passed, detail in decision.checks:
+        click.echo(f"  [{'ok  ' if passed else 'FAIL'}] {name}: {detail}")
+    click.echo("")
+    click.echo(f"{decision.decision.value.upper()}: {decision.reason}")
+
+    if advisory:
+        sys.exit(ExitCode.CLEAN)
+    sys.exit(ExitCode.CLEAN if decision.accepted else ExitCode.FINDINGS)
+
+
+@main.command()
 def doctor() -> None:
     """Report what this installation can and cannot verify.
 
@@ -249,8 +340,13 @@ def doctor() -> None:
         ),
         (
             "admission verification",
-            False,
-            "not implemented at this milestone (T027)",
+            True,
+            "`ppv verify <artifact> --provenance ... --sbom ...`",
+        ),
+        (
+            "signature backend",
+            verify_module.CosignVerifier().available()[0],
+            verify_module.CosignVerifier().available()[1],
         ),
         (
             "expected signer identity configured",
