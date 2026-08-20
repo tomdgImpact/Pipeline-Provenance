@@ -125,10 +125,52 @@ jobs:
         if: always()
         run: python scripts/assert_suite_ran.py adversarial.xml 1
 
-  # The browser gate lands with the HTML renderer (T015) and its Playwright
-  # suite (T016). It is deliberately absent until then: a job that runs an
-  # empty selection would report green while covering nothing, which is the
-  # failure mode `scripts/assert_suite_ran.py` exists to prevent.
+  browser:
+    name: html report interface
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            cdn.playwright.dev:443
+            playwright.azureedge.net:443
+            azure.archive.ubuntu.com:80
+            archive.ubuntu.com:80
+            security.ubuntu.com:80
+            esm.ubuntu.com:443
+            motd.ubuntu.com:443
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - run: uv python install 3.12
+      - run: uv pip install --system -e ".[dev]"
+      - run: python -m playwright install --with-deps chromium
+      - name: Browser suite
+        run: pytest -m gui --junitxml=gui.xml
+      # The report itself is asserted to make no outbound request; the suite
+      # aborts every non-file:// request the page attempts, so a report that
+      # grows an external reference fails here rather than passing on a machine
+      # that happened to have network access.
+      - name: Assert the browser suite was non-empty and nothing was skipped
+        if: always()
+        run: python scripts/assert_suite_ran.py gui.xml 1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   dependencies:
     name: dependency audit
@@ -267,7 +309,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions: {}
-    needs: [static, unit, adversarial, dependencies, sast, secrets, filesystem]
+    needs: [static, unit, adversarial, browser, dependencies, sast, secrets, filesystem]
     if: always()
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
