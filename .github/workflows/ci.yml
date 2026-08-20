@@ -237,7 +237,12 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - run: uv python install 3.12
       - run: uv pip install --system -e ".[dev,remote]"
-      - run: pip-audit --strict --progress-spinner=off
+      # Audited from the committed lockfile rather than from the installed
+      # environment. The environment contains this project, which has no PyPI
+      # record and would make --strict fail on us instead of on a dependency;
+      # more importantly, the lockfile is the thing a build actually resolves.
+      - run: uv export --no-emit-project --format requirements-txt --all-extras -o requirements.audit.txt
+      - run: pip-audit --strict --progress-spinner=off -r requirements.audit.txt
 
   sast:
     name: static application security testing

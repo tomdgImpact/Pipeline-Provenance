@@ -76,5 +76,6 @@ reports/
 *.sbom.json
 *.intoto.jsonl
 *.sarif
+requirements.audit.txt
 benchmarks/results/
 # benchmarks/published/ is the committed record and is deliberately not ignored.
