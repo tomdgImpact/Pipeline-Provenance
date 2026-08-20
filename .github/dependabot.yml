@@ -1,0 +1,22 @@
+# Digest pinning (ADR-0001) means the pinned set rots unless something updates
+# it deliberately. That is the cost of the control, and this is how it is paid.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    labels: [dependencies, supply-chain]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    labels: [dependencies, supply-chain]

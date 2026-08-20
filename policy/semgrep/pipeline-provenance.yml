@@ -1,0 +1,49 @@
+# SAST rules kept in the repository rather than fetched from a registry at run
+# time. A rule set resolved over the network at every build is an unpinned
+# dependency with code-execution reach, which is the exact class of problem
+# this project exists to argue against.
+
+rules:
+  - id: ppv-no-shell-true
+    languages: [python]
+    severity: ERROR
+    message: >-
+      subprocess with shell=True passes the argument string to a shell. This
+      package handles repository-controlled strings; use a list argv instead.
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.$FN(..., shell=True, ...)
+          - pattern: subprocess.$FN(..., shell=$X, ...)
+      - pattern-not: subprocess.$FN(..., shell=False, ...)
+
+  - id: ppv-no-secret-in-log
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Environment values matching a credential name must never reach a log
+      sink. Redact at the boundary, not at the call site.
+    patterns:
+      - pattern-either:
+          - pattern: $LOG(..., os.environ[...], ...)
+          - pattern: $LOG(..., os.environ.get(...), ...)
+      - metavariable-regex:
+          metavariable: $LOG
+          regex: (print|.*log.*|.*echo.*)
+
+  - id: ppv-no-verify-false
+    languages: [python]
+    severity: ERROR
+    message: >-
+      TLS verification disabled. The verifier has no permissive default by
+      design; do not introduce one here.
+    pattern-either:
+      - pattern: $M(..., verify=False, ...)
+      - pattern: $M(..., verify_ssl=False, ...)
+
+  - id: ppv-no-permissive-attestation-default
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Expected signer identity must not have a default value. An identity that
+      defaults to "any" turns verification into decoration (ADR-0002).
+    pattern: os.environ.get("PPV_EXPECTED_SIGNER_IDENTITY", $DEFAULT)
