@@ -39,6 +39,12 @@ audit-self: ## Run the dependency and secret gates this project recommends
 	bandit -c pyproject.toml -r src -ll
 	gitleaks detect --no-banner --redact
 
+.PHONY: bench
+bench: ## Every figure the project publishes, measured offline
+	$(PY) -m benchmarks.detection
+	@echo
+	$(PY) -m benchmarks.performance
+
 .PHONY: demo
 demo: ## The three acts of the supply-chain demonstration
 	pytest -m demo -v

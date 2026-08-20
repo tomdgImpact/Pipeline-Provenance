@@ -30,7 +30,9 @@ class Collector:
         if self._server is None:
             raise RuntimeError("collector is not running")
         host, port = self._server.server_address[:2]
-        return f"http://{host}:{port}/collect"
+        # server_address is typed loosely; loopback is always a str here, and
+        # formatting bytes into a URL would silently produce b'127.0.0.1'.
+        return f"http://{host!s:s}:{port}/collect"
 
     def start(self) -> None:
         collector = self
