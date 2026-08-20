@@ -166,6 +166,21 @@ marketing.
 7. **Administrator-level compromise defeats everything here**, including the
    required status checks that enforce the policy gate.
 
+### Accepted exception in this repository's own pipeline
+
+`ppv audit .` reports exactly one finding against this repository:
+`I2/excessive-permission` on the `sast` job, which holds `security-events:
+write` in order to upload SARIF to code scanning.
+
+The rule is right: write scope is an exception that has to be argued for. This
+is the argument. The scope cannot modify repository contents, it is confined to
+one job whose only third-party step is the upload action itself, and removing it
+would mean the SAST results stop reaching the place a security team reads them.
+The exception is asserted in `tests/security/test_self_conformance.py`, which
+fails both if a new unaccepted finding appears **and** if this one is silently
+fixed without removing it from the list — an accepted-risk register that only
+grows is a suppression file with better manners.
+
 ## 10. Review triggers
 
 This document is revisited when any of the following happens:

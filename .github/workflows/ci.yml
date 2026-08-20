@@ -35,6 +35,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -52,6 +67,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -68,6 +98,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -92,6 +137,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -108,6 +168,21 @@ jobs:
       contents: read
       security-events: write
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -131,6 +206,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
@@ -146,6 +236,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -165,6 +270,21 @@ jobs:
     needs: [static, unit, adversarial, dependencies, sast, secrets, filesystem]
     if: always()
     steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            semgrep.dev:443
+            mirror.gcr.io:443
       - name: Fail unless every gate succeeded
         run: |
           if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "true" ]; then
