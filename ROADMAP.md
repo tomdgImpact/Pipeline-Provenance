@@ -58,13 +58,13 @@ reports the invariant as unenforceable rather than claiming it.
 **Exit criterion:** the verifier refuses to run at all when no expected identity
 is configured, and refuses an artifact when the transparency log is unreachable.
 
-## Phase 4 — The demonstration (US4)
+## Phase 4 — The demonstration (US4) ✅
 
-- [ ] Malicious third-party action and throwaway collector (T030)
-- [ ] Naive pipeline, and the assertion that the attack succeeds against it (T031)
-- [ ] Hardened pipeline: blocked at the gate, and blocked by three named
+- [x] Malicious third-party action and throwaway collector (T030)
+- [x] Naive pipeline, and the assertion that the attack succeeds against it (T031)
+- [x] Hardened pipeline: blocked at the gate, and blocked by three named
       controls when deliberately allowlisted (T032)
-- [ ] Demonstration as a blocking CI step (T033)
+- [x] Demonstration as a blocking CI step (T033)
 
 **Exit criterion:** a malicious third-party action in a hardened pipeline cannot
 read a secret, cannot reach an unlisted host, and cannot produce a deployable

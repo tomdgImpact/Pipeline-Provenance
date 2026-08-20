@@ -172,6 +172,43 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  demonstration:
+    name: supply-chain demonstration (blocking)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      # The allowlist deliberately omits every host the demonstration tries to
+      # reach except loopback, so act three is enforced by the platform rather
+      # than simulated by the test.
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - run: uv python install 3.12
+      - run: uv pip install --system -e ".[dev]"
+      - name: Run the three acts
+        run: pytest -m demo --junitxml=demo.xml
+      - name: Assert the demonstration was non-empty and nothing was skipped
+        if: always()
+        run: python scripts/assert_suite_ran.py demo.xml 3
+      # The assertion above proves the payload behaves as described. This one
+      # proves the runner actually refuses an unlisted host, which no test
+      # running inside the job could establish on its own.
+      - name: Prove egress denial is in force on this runner
+        run: ./demo/prove_egress_denied.sh https://example.com
+
   dependencies:
     name: dependency audit
     runs-on: ubuntu-24.04
@@ -309,7 +346,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions: {}
-    needs: [static, unit, adversarial, browser, dependencies, sast, secrets, filesystem]
+    needs:
+      [static, unit, adversarial, browser, demonstration, dependencies, sast, secrets, filesystem]
     if: always()
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
