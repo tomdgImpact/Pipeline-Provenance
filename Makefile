@@ -39,8 +39,12 @@ audit-self: ## Run the dependency and secret gates this project recommends
 	bandit -c pyproject.toml -r src -ll
 	gitleaks detect --no-banner --redact
 
+.PHONY: demo
+demo: ## The three acts of the supply-chain demonstration
+	pytest -m demo -v
+
 .PHONY: check
-check: lint type test test-security ## Everything CI blocks on
+check: lint type test test-security demo ## Everything CI blocks on
 
 .PHONY: clean
 clean: ## Remove build and cache artifacts

