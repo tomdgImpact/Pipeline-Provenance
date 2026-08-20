@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.sig binary
+
+# Attestation bundles and SBOMs are generated; keep them out of diffs.
+*.intoto.jsonl -diff
+*.sbom.json -diff
