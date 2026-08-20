@@ -98,19 +98,19 @@ set matches exactly by ID and location.
 **Independent test**: a fixture repository with an unpinned action fails at the
 policy gate before any third-party step runs.
 
-- [ ] **T018** [N9] [US2] Policy gate job — FR-010, FR-011, FR-012; reports all
+- [x] **T018** [N9] [US2] Policy gate job — FR-010, FR-011, FR-012; reports all
       violations in one run → `feature/policy-gate`
-- [ ] **T019** [N10] [US2] Hermetic build job — FR-013; no ambient credentials
+- [x] **T019** [N10] [US2] Hermetic build job — FR-013; no ambient credentials
       → `feature/hermetic-build`
-- [ ] **T020** [N11] [US2] Egress default-deny with declared allowlist, applied
+- [x] **T020** [N11] [US2] Egress default-deny with declared allowlist, applied
       before third-party steps — FR-014, FR-015 → `feature/egress-policy`
-- [ ] **T021** [US2] Package as a reusable workflow plus composite action, with a
+- [x] **T021** [US2] Package as a reusable workflow plus composite action, with a
       documented migration path → `feature/reusable-workflow-packaging`
-- [ ] **T022** [US2] End-to-end workflow tests: gate ordering, all-violations
+- [x] **T022** [US2] End-to-end workflow tests: gate ordering, all-violations
       reporting, unenforceable-environment reporting
       → `feature/pipeline-e2e-tests`
 
-**Checkpoint**: US1 and US2 both work independently.
+**Checkpoint**: US1 and US2 both work independently. ✅ landed 2026-08-20.
 
 ---
 

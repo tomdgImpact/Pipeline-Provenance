@@ -34,13 +34,13 @@ adversarial step fails if the suite ever collects nothing. ✅
 fixture corpus — equality, not containment — and reports `unverified` rather
 than passing wherever it cannot assess an invariant. ✅
 
-## Phase 2 — Adopt the hardened pipeline (US2)
+## Phase 2 — Adopt the hardened pipeline (US2) ✅
 
-- [ ] Policy gate: pinning, permissions, trigger lint, all violations at once (T018)
-- [ ] Hermetic build with no ambient credentials (T019)
-- [ ] Default-deny egress with a declared allowlist (T020)
-- [ ] Reusable workflow and composite action, with a migration path (T021)
-- [ ] End-to-end workflow tests including gate ordering (T022)
+- [x] Policy gate: pinning, permissions, trigger lint, all violations at once (T018)
+- [x] Hermetic build with no ambient credentials (T019)
+- [x] Default-deny egress with a declared allowlist (T020)
+- [x] Reusable workflow and composite action, with a migration path (T021)
+- [x] End-to-end workflow tests including gate ordering (T022)
 
 **Exit criterion:** a workflow containing an unpinned reference fails before any
 third-party step executes, and an environment that cannot enforce egress control
