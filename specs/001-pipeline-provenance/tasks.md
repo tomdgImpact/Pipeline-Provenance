@@ -162,11 +162,11 @@ in the hardened run.
 
 ## Phase 7 — Measurement and release
 
-- [ ] **T034** [N14] Benchmark harness, offline by default: SC-001, SC-002,
+- [x] **T034** [N14] Benchmark harness, offline by default: SC-001, SC-002,
       SC-004, SC-008 → `feature/benchmark-harness`
-- [ ] **T035** [N14] Public-repository finding distribution, aggregate only,
+- [x] **T035** [N14] Public-repository finding distribution, aggregate only,
       no project named — SC-003 → `feature/public-corpus-study`
-- [ ] **T036** [N15] README: thesis, architecture, invariants with enforcement
+- [x] **T036** [N15] README: thesis, architecture, invariants with enforcement
       points, adversarial proof, measured results with per-row caveats, and the
       Limitations section — FR-024, FR-025 → `feature/readme-results`
 - [ ] **T037** [N15] Release v0.1.0: CycloneDX SBOM generated in CI and attached,

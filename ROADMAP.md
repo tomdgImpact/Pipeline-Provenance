@@ -72,10 +72,10 @@ artifact — demonstrated end to end, in CI, reproducibly from a public reposito
 
 ## Phase 5 — Measurement and release
 
-- [ ] Benchmark harness, offline by default (T034)
-- [ ] Aggregate finding distribution across public repositories, no project
+- [x] Benchmark harness, offline by default (T034)
+- [x] Aggregate finding distribution across public repositories, no project
       named (T035)
-- [ ] README results section with per-row caveats and the Limitations section (T036)
+- [x] README results section with per-row caveats and the Limitations section (T036)
 - [ ] v0.1.0: SBOM generated in CI and attached, artifacts signed, tagged (T037)
 
 **Exit criterion:** every number published in the README carries the corpus,

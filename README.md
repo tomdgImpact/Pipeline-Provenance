@@ -6,11 +6,12 @@ provenance, admission-time verification, and a demonstrated compromise.**
 [![ci](https://github.com/tomdgImpact/Pipeline-Provenance/actions/workflows/ci.yml/badge.svg)](https://github.com/tomdgImpact/Pipeline-Provenance/actions/workflows/ci.yml)
 [![licence](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE)
 
-> **Status: v0.1.0 in development.** The threat model, the invariants, the
-> specification and the gate set are in place. The implementation is landing
-> phase by phase — see [`ROADMAP.md`](ROADMAP.md). **No measured results are
-> published yet.** When they are, each will carry the corpus, method and date
-> it was measured on. Numbers without those are not published here.
+> **Status: v0.1.0.** All five phases of [`ROADMAP.md`](ROADMAP.md) have landed:
+> the audit CLI, the hardened reusable workflow, admission-time verification,
+> the three-act demonstration, and the measurements below. Every figure quoted
+> here carries the corpus, the method and the date it was measured on, and the
+> raw output is committed under
+> [`benchmarks/published/`](benchmarks/published/).
 
 ---
 
@@ -100,6 +101,29 @@ source ──▶ [ policy gate ]   pinning check, permissions lint, egress polic
 
 ## Adversarial proof
 
+### The demonstration, in three acts
+
+| | Pipeline | Outcome | Blocked by |
+|---|---|---|---|
+| 1 | Naive | Token reaches the collector | nothing |
+| 2 | Hardened | Action never executes | policy gate — unpinned reference (I1) |
+| 3 | Hardened, action pinned **and** allowlisted | Executes, reaches nothing | egress deny (I4), scoped token (I2), artifact refused at admission (I3) |
+
+Act 1 asserts the attack **succeeds**. That half is not decoration: a
+demonstration asserting only the hardened outcome passes just as happily when
+the attack never worked in the first place. Act 3 is the one worth reading — it
+hands the attacker everything the gate would have taken away and the remaining
+three invariants still hold, separately asserted.
+
+The CI job closes the gap a local run cannot: behind a default-deny egress
+policy it reaches for an unlisted host and **fails the build if the request
+succeeds**. A control that is declared and not in force reads as a control.
+
+The payload moves `DEMO_FAKE_TOKEN`, never a real credential — see
+[`demo/README.md`](demo/README.md) for why that substitution is deliberate.
+
+### The corpus
+
 The attack table in the threat model is not prose: every row is a test in
 `tests/security/`, and that suite runs as **its own blocking CI step**. The step
 fails if the suite collects zero tests or skips one — see
@@ -115,21 +139,99 @@ against itself.
 
 ## Measured results
 
-**Not yet published.** Phase 5 of [`ROADMAP.md`](ROADMAP.md) produces:
+Every number below is reproducible from a clean checkout. The raw harness output
+is committed in [`benchmarks/published/`](benchmarks/published/), dated and
+stamped with the ruleset version that produced it.
 
-- Detection precision and recall on a curated fixture corpus, with the corpus
-  size and date.
-- False-positive rate on already-hardened repositories, stated as a number.
-- Distribution of findings by invariant across public repositories, **in
-  aggregate only** — no individual project is named.
-- Build-time overhead added by attestation and verification, in seconds, against
-  a stated baseline.
-- The exfiltration demonstration: token reachable in the naive pipeline, not
-  reachable in the hardened one.
+### Detection quality — ruleset 2026.08.1, measured 2026-08-20
 
-Every figure will appear with its caveat. "100% detection" is a marketing claim;
-"100% detection on a hand-curated corpus of *n* cases matching the current rule
-set, measured on *date*" is an engineering claim. The caveat is the credential.
+| | Value |
+|---|---|
+| Corpus | 6 hand-curated fixture repositories, 30 declared defects |
+| Precision | **1.0** |
+| Recall | **1.0** |
+| False positives on the 2 clean fixtures | **0** |
+
+**The caveat is the credential.** The denominator is the defect table in each
+fixture's `intent.md`, hand-written *before* the rule that detects it. Measuring
+against the tool's own saved output would establish only that the tool agrees
+with itself, which is the failure mode most detection benchmarks quietly have.
+The corpus is small and synthetic by construction: these figures describe six
+repositories and say nothing about the long tail of real-world workflows.
+
+```bash
+python -m benchmarks.detection
+```
+
+### What the invariants look like in the wild — measured 2026-08-20
+
+Fourteen widely-used open-source projects across several ecosystems, 101
+workflow files. **Aggregate only — no individual project is named**, and a test
+enforces that. The sample list is committed in `benchmarks/corpus.txt` so nobody
+has to take the aggregate on trust.
+
+| Invariant | Passing | Failing |
+|---|---|---|
+| **I1** nothing runs unpinned | 0 / 14 | **14 / 14** |
+| **I2** secrets scoped to the job | 0 / 14 | **14 / 14** |
+| **I3** verifiable provenance | 4 / 14 | **10 / 14** |
+| **I4** egress denied by default | 0 / 14 | **14 / 14** |
+
+Most frequent findings — note that *findings* and *repositories affected* answer
+different questions and are reported separately:
+
+| Rule | Findings | Repositories |
+|---|---|---|
+| `I1/missing-version-comment` | 341 | 9 / 14 |
+| `I4/no-egress-policy` | 221 | 14 / 14 |
+| `I2/implicit-token-scope` | 86 | 12 / 14 |
+| `I2/persisted-credentials` | 58 | 10 / 14 |
+| `I1/unpinned-action` | 58 | 5 / 14 |
+| `I3/no-sbom` | 48 | 10 / 14 |
+| `I3/no-provenance` | 41 | 10 / 14 |
+| `I2/privileged-trigger` | 9 | 3 / 14 |
+
+**Caveats.** The sample is small and deliberately chosen, not random: it
+describes these fourteen projects and is not a population estimate. Only
+`.github/workflows` was read; reusable workflows called from other repositories
+were not followed. I4 is assessed by declaration — no runner was observed.
+
+```bash
+python -m benchmarks.distribution --online --output out.json
+```
+
+### Audit performance — measured 2026-08-20
+
+Median wall clock, 20 repetitions, offline, on `macOS-26.6.1-arm64` /
+CPython 3.12:
+
+| Target | Workflows | Median | p95 |
+|---|---|---|---|
+| This repository | 2 | **28.8 ms** | 44.0 ms |
+| `monorepo` fixture | 3 | 4.7 ms | 5.0 ms |
+| `naive` fixture | 1 | 2.4 ms | 2.7 ms |
+
+Against a 5 s budget (SC-008). One developer machine, named above — not a
+portable figure and not a claim about any other hardware. A monorepo with
+hundreds of workflows was not measured.
+
+### The tool against itself
+
+`ppv audit .` reports **one confirmed finding** against this repository —
+`I2/excessive-permission` on the SAST job, which needs `security-events: write`
+to upload SARIF. The rule is right that write scope has to be argued for; the
+argument is in [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) §9, and a test
+fails both if a new unaccepted finding appears **and** if this one is fixed
+without removing it from the list. An accepted-risk register that only grows is
+a suppression file with better manners.
+
+I3 reports `unverified` here, correctly: this repository ships a build workflow
+and a library, and the admission point belongs to whoever consumes them. That is
+not a pass.
+
+Running the tool against its own pipeline found eight jobs with unrestricted
+egress and one artifact-detection false positive. Both were real, and both were
+fixed — the commits are in the history.
 
 ## Limitations
 
@@ -176,7 +278,19 @@ Read this section before the rest.
 make install        # project plus development dependencies
 make check          # everything CI blocks on
 make test-security  # the adversarial corpus, on its own
+make demo           # the three acts
+make bench          # every published figure, measured offline
 ppv doctor          # what this installation can and cannot verify
+```
+
+Auditing something:
+
+```bash
+ppv audit .                          # human-readable, offline
+ppv audit . --format html -o r.html  # one self-contained file, no network
+ppv audit . --format sarif -o r.sarif
+ppv gate .                           # fail the build on any violation
+ppv verify dist/app.whl --provenance p.json --sbom s.json
 ```
 
 `ppv doctor` names every capability it does **not** have. A tool that silently
