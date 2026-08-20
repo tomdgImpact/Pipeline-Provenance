@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tomdgImpact/Pipeline-Provenance/schemas/audit-result.v1.schema.json",
+  "title": "ppv audit result, schema version 1",
+  "description": "The canonical output of `ppv audit`. Consumers gate on schema_version, never on tool_version. additionalProperties is false throughout: a consumer that silently ignores an unknown field cannot tell a new signal from a typo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool_version",
+    "ruleset_version",
+    "target",
+    "generated_at",
+    "workflows_examined",
+    "invariants",
+    "findings",
+    "references",
+    "unverifiable",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "tool_version": { "type": "string", "minLength": 1 },
+    "ruleset_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A published number is only comparable against the ruleset that produced it."
+    },
+    "target": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflows_examined": { "type": "array", "items": { "type": "string" } },
+    "invariants": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "All four invariants are always present. Omitting a passing invariant lets a reader assume it was checked when it may have been dropped.",
+      "items": { "$ref": "#/$defs/invariantReport" }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+    "unverifiable": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Human-readable statements of what this run could not assess."
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "invariant": { "enum": ["I1", "I2", "I3", "I4"] },
+    "severity": { "enum": ["critical", "high", "medium", "low"] },
+    "assessment": { "enum": ["verified", "unverified"] },
+    "status": { "enum": ["passing", "failing", "unverified"] },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "line"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "line": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "invariantReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invariant", "title", "status", "note", "findings", "counts"],
+      "properties": {
+        "invariant": { "$ref": "#/$defs/invariant" },
+        "title": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "note": {
+          "type": ["string", "null"],
+          "description": "Why an invariant is unverified. The part a reader needs to decide whether to care."
+        },
+        "findings": { "type": "array", "items": { "type": "string" } },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "verified", "unverified"],
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "verified": { "type": "integer", "minimum": 0 },
+            "unverified": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id",
+        "invariant",
+        "severity",
+        "title",
+        "detail",
+        "location",
+        "remediation",
+        "assessment",
+        "evidence",
+        "threat_ids"
+      ],
+      "properties": {
+        "rule_id": { "type": "string", "pattern": "^I[1-4]/[a-z0-9-]+$" },
+        "invariant": { "$ref": "#/$defs/invariant" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "title": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string", "minLength": 1 },
+        "location": { "$ref": "#/$defs/location" },
+        "remediation": { "type": "string", "minLength": 1 },
+        "assessment": { "$ref": "#/$defs/assessment" },
+        "evidence": { "type": ["string", "null"] },
+        "threat_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^T-[0-9]{2}$" },
+          "description": "Rows of the attack table in docs/THREAT_MODEL.md. A finding that maps to no row is either a missing threat or noise."
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "kind", "location", "resolved", "pinned"],
+      "properties": {
+        "raw": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["action", "image", "dependency-manifest"] },
+        "location": { "$ref": "#/$defs/location" },
+        "resolved": { "type": ["string", "null"] },
+        "pinned": { "type": "boolean" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "verified", "unverified", "by_severity"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "verified": { "type": "integer", "minimum": 0 },
+        "unverified": { "type": "integer", "minimum": 0 },
+        "by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["critical", "high", "medium", "low"],
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}
