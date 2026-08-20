@@ -1,8 +1,9 @@
 """``ppv`` command line entry point.
 
-The CLI's contract is its exit codes, not its prose. ``verify`` is deliberately
-still absent: a registered command that returns an empty result reads to a
-caller as a clean result, and this project exists to argue against exactly that.
+The CLI's contract is its exit codes and its machine-readable formats, not its
+prose. ``verify`` is deliberately still absent: a registered command that
+returns an empty result reads to a caller as a clean result, and this project
+exists to argue against exactly that.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import os
 import platform
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import click
@@ -22,11 +24,73 @@ from pipeline_provenance.model import (
     ExitCode,
     Status,
 )
+from pipeline_provenance.report import json_out, sarif_out
 
 STATUS_MARK: dict[Status, str] = {
     Status.PASSING: "pass",
     Status.FAILING: "FAIL",
     Status.UNVERIFIED: "????",
+}
+
+
+def render_text(result: AuditResult) -> str:
+    """Human-readable summary. The machine-readable formats are the contract."""
+    out: list[str] = []
+
+    def line(text: str = "") -> None:
+        out.append(text + "\n")
+
+    line(f"ppv {result.tool_version}  ruleset {result.ruleset_version}")
+    line(f"target: {result.target}")
+
+    if not result.workflows_examined:
+        line()
+        line("Nothing to audit: no workflow definitions found.")
+        line("This repository has not been found compliant. It has not been assessed.")
+        return "".join(out)
+
+    line(f"workflows examined: {len(result.workflows_examined)}")
+    line()
+    for report in result.invariants:
+        mark = STATUS_MARK[report.status]
+        line(f"  [{mark}] {report.invariant.value}  {report.invariant.label}")
+
+    findings = result.findings
+    if findings:
+        line()
+        line(f"{len(findings)} finding(s):")
+        for finding in findings:
+            flag = "" if finding.assessment is Assessment.VERIFIED else " (unverified)"
+            line()
+            line(f"  {finding.severity.value.upper():8} {finding.rule_id}{flag}")
+            line(f"           {finding.location}")
+            line(f"           {finding.title}")
+            if finding.evidence:
+                line(f"           > {finding.evidence}")
+            line(f"           fix: {finding.remediation}")
+
+    if result.unverifiable:
+        line()
+        line("Could not be established by this run:")
+        for statement in result.unverifiable:
+            line(f"  - {statement}")
+
+    line()
+    summary = result.to_dict()["summary"]
+    line(
+        f"{summary['verified']} confirmed, {summary['unverified']} unverified, "
+        f"{summary['by_severity']['critical']} critical, "
+        f"{summary['by_severity']['high']} high."
+    )
+    return "".join(out)
+
+
+#: Renderers keyed by ``--format``. Each is a projection of the same result
+#: object; none computes anything of its own, so they cannot disagree.
+RENDERERS: dict[str, Callable[[AuditResult], str]] = {
+    "text": render_text,
+    "json": json_out.render,
+    "sarif": sarif_out.render,
 }
 
 
@@ -43,11 +107,25 @@ def main() -> None:
     default=".",
 )
 @click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(sorted(RENDERERS)),
+    default="text",
+    help="text for a human, json for the contract, sarif for code scanning.",
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    default=None,
+    help="Write to a file instead of stdout.",
+)
+@click.option(
     "--remote/--no-remote",
     default=False,
     help="Resolve references over the network. Requires PPV_GITHUB_TOKEN.",
 )
-def audit(path: Path, remote: bool) -> None:
+def audit(path: Path, output_format: str, output: Path | None, remote: bool) -> None:
     """Audit PATH against the four structural invariants.
 
     Offline by default. Exit codes: 0 assessed and clean, 1 findings or
@@ -65,56 +143,15 @@ def audit(path: Path, remote: bool) -> None:
         )
 
     result = run_audit(path)
-    _render_text(result)
+    rendered = RENDERERS[output_format](result)
+
+    if output is None:
+        click.echo(rendered, nl=False)
+    else:
+        output.write_text(rendered, encoding="utf-8")
+        click.echo(f"wrote {output_format} to {output}", err=True)
+
     sys.exit(result.exit_code)
-
-
-def _render_text(result: AuditResult) -> None:
-    """Human-readable summary. The machine-readable formats are the contract."""
-    click.echo(f"ppv {result.tool_version}  ruleset {result.ruleset_version}")
-    click.echo(f"target: {result.target}")
-
-    if not result.workflows_examined:
-        click.echo("")
-        click.echo("Nothing to audit: no workflow definitions found.")
-        click.echo(
-            "This repository has not been found compliant. It has not been assessed."
-        )
-        return
-
-    click.echo(f"workflows examined: {len(result.workflows_examined)}")
-    click.echo("")
-    for report in result.invariants:
-        mark = STATUS_MARK[report.status]
-        click.echo(f"  [{mark}] {report.invariant.value}  {report.invariant.label}")
-
-    findings = result.findings
-    if findings:
-        click.echo("")
-        click.echo(f"{len(findings)} finding(s):")
-        for finding in findings:
-            flag = "" if finding.assessment is Assessment.VERIFIED else " (unverified)"
-            click.echo("")
-            click.echo(f"  {finding.severity.value.upper():8} {finding.rule_id}{flag}")
-            click.echo(f"           {finding.location}")
-            click.echo(f"           {finding.title}")
-            if finding.evidence:
-                click.echo(f"           > {finding.evidence}")
-            click.echo(f"           fix: {finding.remediation}")
-
-    if result.unverifiable:
-        click.echo("")
-        click.echo("Could not be established by this run:")
-        for statement in result.unverifiable:
-            click.echo(f"  - {statement}")
-
-    click.echo("")
-    summary = result.to_dict()["summary"]
-    click.echo(
-        f"{summary['verified']} confirmed, {summary['unverified']} unverified, "
-        f"{summary['by_severity']['critical']} critical, "
-        f"{summary['by_severity']['high']} high."
-    )
 
 
 @main.command()
@@ -126,10 +163,11 @@ def doctor() -> None:
     """
     capabilities: list[tuple[str, bool, str]] = [
         ("offline static audit", True, "`ppv audit <path>`"),
+        ("json and sarif output", True, "`--format json|sarif`"),
         (
             "remote reference resolution",
             False,
-            "not implemented at this milestone (T013 follow-up)",
+            "not implemented at this milestone",
         ),
         (
             "admission verification",
