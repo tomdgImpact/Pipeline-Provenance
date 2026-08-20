@@ -1,0 +1,22 @@
+# Public repositories sampled for the invariant distribution study.
+#
+# Selection: widely-used open-source projects across several ecosystems that
+# build and publish artifacts from GitHub Actions. The list is committed so the
+# sample is reproducible and so nobody has to take the aggregate on trust.
+#
+# Results are published in aggregate only. No individual project is named in
+# any output, and none is contacted: only public workflow files are read.
+psf/requests
+pallets/flask
+pytest-dev/pytest
+encode/httpx
+tiangolo/fastapi
+astral-sh/ruff
+prettier/prettier
+axios/axios
+expressjs/express
+sindresorhus/got
+gin-gonic/gin
+spf13/cobra
+rust-lang/mdBook
+serde-rs/serde

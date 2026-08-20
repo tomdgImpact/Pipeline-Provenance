@@ -77,3 +77,4 @@ reports/
 *.intoto.jsonl
 *.sarif
 benchmarks/results/
+# benchmarks/published/ is the committed record and is deliberately not ignored.
