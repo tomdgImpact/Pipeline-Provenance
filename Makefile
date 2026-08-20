@@ -35,7 +35,8 @@ test-gui: ## Browser coverage of the HTML report
 
 .PHONY: audit-self
 audit-self: ## Run the dependency and secret gates this project recommends
-	pip-audit --strict
+	uv export --no-emit-project --format requirements-txt --all-extras -o requirements.audit.txt
+	pip-audit --strict --progress-spinner=off -r requirements.audit.txt
 	bandit -c pyproject.toml -r src -ll
 	gitleaks detect --no-banner --redact
 
@@ -54,5 +55,5 @@ check: lint type test test-security demo ## Everything CI blocks on
 
 .PHONY: clean
 clean: ## Remove build and cache artifacts
-	rm -rf build dist .mypy_cache .ruff_cache .pytest_cache htmlcov .coverage
+	rm -rf build dist .mypy_cache .ruff_cache .pytest_cache htmlcov .coverage requirements.audit.txt
 	find . -name '__pycache__' -type d -prune -exec rm -rf {} +

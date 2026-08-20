@@ -32,6 +32,10 @@ reference does not build.
   point, and it is the cost.
 - Dependabot or Renovate becomes load-bearing rather than optional, because
   without automation the pinned set rots.
+- A committed lockfile (`uv.lock`) is required, not optional: it is what makes
+  "pinned with hashes" true for the Python side, and it is what the dependency
+  audit gate reads. Auditing the installed environment instead would audit
+  whatever happened to be present.
 - Readability suffers. `actions/checkout@08c6903` says less to a human than
   `@v4`. Mitigated by a comment carrying the human-readable version alongside
   the digest — a comment cannot be repointed by the publisher.
