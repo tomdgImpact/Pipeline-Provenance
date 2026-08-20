@@ -14,6 +14,9 @@ from typing import Any
 import pytest
 from ruamel.yaml import YAML
 
+from pipeline_provenance.audit import audit
+from pipeline_provenance.model import Status
+
 pytestmark = pytest.mark.security
 
 # A pinned reference is `owner/repo@<40 hex>` or `owner/repo/path@<40 hex>`.
@@ -180,3 +183,56 @@ def test_every_job_has_a_timeout(workflow_files: list[Path]) -> None:
         if "timeout-minutes" not in job
     ]
     assert not missing, "job without timeout-minutes:\n  " + "\n  ".join(missing)
+
+
+class TestSelfAudit:
+    """Run the shipped tool against the repository that ships it.
+
+    This is the strongest self-conformance test available: it exercises the
+    real rule set rather than a re-implementation of it, so a rule that stops
+    working fails here too.
+    """
+
+    ACCEPTED: frozenset[tuple[str, str]] = frozenset(
+        {
+            # The SAST job uploads SARIF to code scanning, which needs
+            # `security-events: write`. The rule is right that write scope has
+            # to be argued for; this is the argument, recorded in
+            # docs/THREAT_MODEL.md section 9 as accepted residual risk. It is
+            # listed here so the exception is explicit rather than suppressed.
+            ("I2/excessive-permission", "sast"),
+        }
+    )
+
+    def test_the_self_audit_reports_only_accepted_findings(
+        self, repo_root: Path
+    ) -> None:
+        result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
+        unexpected = [
+            f
+            for f in result.findings
+            if not any(f.rule_id == rule for rule, _ in self.ACCEPTED)
+        ]
+        assert not unexpected, "unaccepted findings against this repository:\n  " + (
+            "\n  ".join(f"{f.rule_id} at {f.location}" for f in unexpected)
+        )
+
+    def test_the_accepted_exception_still_exists(self, repo_root: Path) -> None:
+        """If the exception is ever fixed, this fails and forces the list to
+        shrink. An accepted-risk list that only grows is a suppression file."""
+        result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
+        reported = {f.rule_id for f in result.findings}
+        for rule, _job in self.ACCEPTED:
+            assert rule in reported, (
+                f"{rule} is accepted in this list but no longer reported. "
+                "Remove it from ACCEPTED."
+            )
+
+    def test_three_of_four_invariants_hold_against_this_repository(
+        self, repo_root: Path
+    ) -> None:
+        result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
+        statuses = {r.invariant.value: r.status for r in result.invariants}
+        assert statuses["I1"] is Status.PASSING
+        assert statuses["I3"] is Status.PASSING
+        assert statuses["I4"] is Status.PASSING
