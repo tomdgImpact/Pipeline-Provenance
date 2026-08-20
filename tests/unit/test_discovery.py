@@ -194,3 +194,52 @@ def test_local_composite_actions_are_not_third_party(tmp_path: Path) -> None:
     repository = load_repository(tmp_path)
     step = repository.workflows[0].jobs[0].steps[0]
     assert step.is_third_party is False
+
+
+class TestDiagnosticSteps:
+    """A step that only runs after a failure is debugging output, not a build."""
+
+    def test_a_failure_guarded_upload_does_not_count_as_producing(
+        self, tmp_path: Path
+    ) -> None:
+        _write(
+            tmp_path,
+            "name: ci\non: push\njobs:\n  test:\n    steps:\n"
+            "      - run: make test\n"
+            "      - uses: actions/upload-artifact@" + "a" * 40 + "\n"
+            "        if: failure()\n"
+            "        with:\n          name: logs\n",
+        )
+        repository = load_repository(tmp_path)
+        assert repository.workflows[0].jobs[0].produces_artifact is False
+
+    def test_an_unconditional_upload_still_counts(self, tmp_path: Path) -> None:
+        _write(
+            tmp_path,
+            "name: ci\non: push\njobs:\n  build:\n    steps:\n"
+            "      - uses: actions/upload-artifact@" + "a" * 40 + "\n"
+            "        with:\n          name: dist\n",
+        )
+        repository = load_repository(tmp_path)
+        assert repository.workflows[0].jobs[0].produces_artifact is True
+
+    def test_a_cancelled_guard_is_also_diagnostic(self, tmp_path: Path) -> None:
+        _write(
+            tmp_path,
+            "name: ci\non: push\njobs:\n  build:\n    steps:\n"
+            "      - uses: actions/upload-artifact@" + "a" * 40 + "\n"
+            "        if: cancelled()\n",
+        )
+        repository = load_repository(tmp_path)
+        assert repository.workflows[0].jobs[0].produces_artifact is False
+
+    def test_an_always_guard_is_not_treated_as_diagnostic(self, tmp_path: Path) -> None:
+        """`always()` runs on success too, so it can carry a real deliverable."""
+        _write(
+            tmp_path,
+            "name: ci\non: push\njobs:\n  build:\n    steps:\n"
+            "      - uses: actions/upload-artifact@" + "a" * 40 + "\n"
+            "        if: always()\n",
+        )
+        repository = load_repository(tmp_path)
+        assert repository.workflows[0].jobs[0].produces_artifact is True

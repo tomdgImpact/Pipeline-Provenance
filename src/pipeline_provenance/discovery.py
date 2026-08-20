@@ -73,8 +73,23 @@ class Step:
     uses: str | None = None
     run: str | None = None
     name: str | None = None
+    condition: str | None = None
     with_: dict[str, Any] = field(default_factory=dict)
     env: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def is_diagnostic(self) -> bool:
+        """Whether this step only runs when something already went wrong.
+
+        A step guarded by ``failure()`` or ``cancelled()`` produces debugging
+        output, not a deliverable. Treating a crash dump as a released artifact
+        makes the tool demand provenance for a Playwright trace, which teaches a
+        maintainer to ignore it.
+        """
+        if not self.condition:
+            return False
+        lowered = self.condition.lower()
+        return "failure()" in lowered or "cancelled()" in lowered
 
     @property
     def is_third_party(self) -> bool:
@@ -114,6 +129,8 @@ class Job:
             "pypa/gh-action-pypi-publish",
         )
         for step in self.steps:
+            if step.is_diagnostic:
+                continue
             if step.uses and any(marker in step.uses for marker in markers):
                 return True
             if step.run and _mentions_publish(step.run):
@@ -229,6 +246,7 @@ def _steps(raw_steps: Any, job_line: int) -> tuple[Step, ...]:
                 uses=str(raw["uses"]) if raw.get("uses") is not None else None,
                 run=str(raw["run"]) if raw.get("run") is not None else None,
                 name=str(raw["name"]) if raw.get("name") is not None else None,
+                condition=str(raw["if"]) if raw.get("if") is not None else None,
                 with_=_as_mapping(raw.get("with")),
                 env=_as_mapping(raw.get("env")),
             )
