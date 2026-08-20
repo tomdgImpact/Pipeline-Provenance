@@ -12,18 +12,30 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
+from ruamel.yaml import YAML
 
 pytestmark = pytest.mark.security
 
 # A pinned reference is `owner/repo@<40 hex>` or `owner/repo/path@<40 hex>`.
+_YAML = YAML(typ="safe", pure=True)
+
+
+def _load(path: Path) -> Any:
+    """Load with the parser this project actually depends on.
+
+    An ambient parser that happens to be installed is an undeclared
+    dependency, which is the class of problem this repository is about.
+    """
+    return _YAML.load(path.read_text())
+
+
 PINNED = re.compile(r"^[\w.-]+/[\w./-]+@[0-9a-f]{40}$")
 # Local composite actions and Docker references are handled separately.
 LOCAL = re.compile(r"^(\./|docker://)")
 
 
 def _jobs(path: Path) -> dict[str, Any]:
-    document = yaml.safe_load(path.read_text())
+    document = _load(path)
     jobs = document.get("jobs", {})
     assert isinstance(jobs, dict)
     return jobs
@@ -84,7 +96,7 @@ def test_every_pinned_action_carries_a_version_comment(
 def test_top_level_permissions_deny_by_default(workflow_files: list[Path]) -> None:
     """I2 — no workflow inherits the repository default token scope."""
     for path in workflow_files:
-        document = yaml.safe_load(path.read_text())
+        document = _load(path)
         assert "permissions" in document, f"{path.name}: no top-level permissions block"
         assert document["permissions"] in ({}, None), (
             f"{path.name}: top-level permissions must deny by default; "
@@ -129,9 +141,8 @@ def test_no_job_requests_write_scope_it_does_not_need(
 def test_no_privileged_trigger_on_untrusted_forks(workflow_files: list[Path]) -> None:
     """Threat model T-10 — pull_request_target hands write scope to fork code."""
     for path in workflow_files:
-        triggers = yaml.safe_load(path.read_text()).get(True) or yaml.safe_load(
-            path.read_text()
-        ).get("on")
+        document = _load(path)
+        triggers = document.get(True, document.get("on"))
         assert triggers is not None, f"{path.name}: no trigger block"
         names = triggers if isinstance(triggers, dict) else {triggers: None}
         assert "pull_request_target" not in names, (
