@@ -155,11 +155,18 @@ def evaluate(repository: Repository) -> InvariantReport:
             )
         )
 
-    note = (
-        "Provenance proves where an artifact came from, never that it is correct."
-        if producers
-        else "No job in this repository produces a deployable artifact."
-    )
+    if not producers:
+        note = "No job in this repository produces a deployable artifact."
+    elif not _verifies(repository):
+        note = (
+            "No admission-time verification is visible here. The admission point "
+            "may be external to this repository, so this is reported as "
+            "unverified rather than failing — which is not a pass."
+        )
+    else:
+        note = (
+            "Provenance proves where an artifact came from, never that it is correct."
+        )
     return InvariantReport(
         invariant=INVARIANT,
         findings=tuple(findings) + unparsable_findings(repository, INVARIANT),

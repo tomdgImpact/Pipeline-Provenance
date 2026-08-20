@@ -22,6 +22,7 @@ from pipeline_provenance.model import (
     Assessment,
     AuditResult,
     ExitCode,
+    Severity,
     Status,
 )
 from pipeline_provenance.report import html_out, json_out, sarif_out
@@ -159,6 +160,78 @@ def audit(path: Path, output_format: str, output: Path | None, remote: bool) -> 
 
 
 @main.command()
+@click.argument(
+    "path",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    default=".",
+)
+@click.option(
+    "--fail-on",
+    type=click.Choice([level.value for level in Severity]),
+    default="low",
+    help="Lowest severity that fails the gate. Default: everything fails it.",
+)
+@click.option(
+    "--allow-unverified/--no-allow-unverified",
+    default=False,
+    help=(
+        "Permit invariants this run could not assess. Off by default: a gate "
+        "that passes on 'I could not tell' is not a gate."
+    ),
+)
+def gate(path: Path, fail_on: str, allow_unverified: bool) -> None:
+    """Fail the build unless PATH satisfies the four invariants.
+
+    Reports every violation in one run rather than stopping at the first, so a
+    team migrating an existing repository sees the whole list instead of
+    entering a fail-fix loop they abandon on the fourth iteration.
+    """
+    result = run_audit(path)
+    threshold = Severity(fail_on)
+
+    if not result.workflows_examined:
+        click.echo("gate: nothing to audit — no workflow definitions found.", err=True)
+        click.echo(
+            "This is not a pass. Point the gate at a repository with workflows.",
+            err=True,
+        )
+        sys.exit(ExitCode.NOTHING_TO_AUDIT)
+
+    click.echo(render_text(result), nl=False)
+
+    blocking = [
+        finding
+        for finding in result.findings
+        if finding.assessment is Assessment.VERIFIED
+        and finding.severity.rank <= threshold.rank
+    ]
+    unverified = [
+        finding
+        for finding in result.findings
+        if finding.assessment is Assessment.UNVERIFIED
+    ]
+
+    click.echo("")
+    if blocking:
+        click.echo(
+            f"gate: FAILED — {len(blocking)} violation(s) at {fail_on} or above.",
+            err=True,
+        )
+    if unverified and not allow_unverified:
+        click.echo(
+            f"gate: FAILED — {len(unverified)} check(s) could not be completed. "
+            "Pass --allow-unverified to accept that, deliberately and in writing.",
+            err=True,
+        )
+
+    if blocking or (unverified and not allow_unverified):
+        sys.exit(ExitCode.FINDINGS)
+
+    click.echo("gate: passed.")
+    sys.exit(ExitCode.CLEAN)
+
+
+@main.command()
 def doctor() -> None:
     """Report what this installation can and cannot verify.
 
@@ -168,6 +241,7 @@ def doctor() -> None:
     capabilities: list[tuple[str, bool, str]] = [
         ("offline static audit", True, "`ppv audit <path>`"),
         ("json, sarif and html output", True, "`--format json|sarif|html`"),
+        ("policy gate", True, "`ppv gate <path>`"),
         (
             "remote reference resolution",
             False,

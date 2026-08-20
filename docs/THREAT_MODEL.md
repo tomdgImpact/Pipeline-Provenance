@@ -181,6 +181,12 @@ fails both if a new unaccepted finding appears **and** if this one is silently
 fixed without removing it from the list — an accepted-risk register that only
 grows is a suppression file with better manners.
 
+`ppv audit .` also reports `I3/no-admission-verification` as **unverified**, and
+I3 as `unverified` overall. That is correct and is not a pass: this repository
+ships a build workflow and a library, and the admission point belongs to whoever
+consumes them. The tool cannot see a control outside the repository, so it says
+so rather than guessing in either direction.
+
 ## 10. Review triggers
 
 This document is revisited when any of the following happens:

@@ -1,0 +1,48 @@
+name: Policy gate
+description: >
+  Fail the run unless the repository satisfies the four structural invariants.
+  Must run to completion before any third-party step in the same job: a gate
+  that runs alongside untrusted code is not a gate.
+
+inputs:
+  path:
+    description: Repository root to audit.
+    required: false
+    default: "."
+  fail-on:
+    description: Lowest severity that fails the gate.
+    required: false
+    default: low
+  allow-unverified:
+    description: >
+      Permit invariants the gate could not assess. Off by default: a gate that
+      passes on "I could not tell" is not a gate. Turning it on is a decision
+      that belongs in a pull request, not in a default.
+    required: false
+    default: "false"
+  sarif-output:
+    description: Optional path to write a SARIF report to.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install the gate
+      shell: bash
+      run: pipx install --pip-args=--require-hashes pipeline-provenance || pip install pipeline-provenance
+
+    - name: Report every violation in this run
+      shell: bash
+      run: |
+        set -o pipefail
+        args=(--fail-on "${{ inputs.fail-on }}")
+        if [ "${{ inputs.allow-unverified }}" = "true" ]; then
+          args+=(--allow-unverified)
+        fi
+        ppv gate "${{ inputs.path }}" "${args[@]}"
+
+    - name: Emit SARIF for code scanning
+      if: ${{ always() && inputs.sarif-output != '' }}
+      shell: bash
+      run: ppv audit "${{ inputs.path }}" --format sarif -o "${{ inputs.sarif-output }}" || true
