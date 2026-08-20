@@ -1,0 +1,98 @@
+{
+  "measured_at": "2026-08-20T20:37:25+00:00",
+  "tool_version": "0.1.0.dev0",
+  "ruleset_version": "2026.08.1",
+  "sample": {
+    "requested": 14,
+    "examined": 14,
+    "unreachable_or_empty": 0,
+    "workflow_files": 101,
+    "selection": "widely-used open-source projects across several ecosystems, listed in benchmarks/corpus.txt"
+  },
+  "invariants": {
+    "I1": {
+      "passing": 0,
+      "failing": 14,
+      "unverified": 0
+    },
+    "I2": {
+      "passing": 0,
+      "failing": 14,
+      "unverified": 0
+    },
+    "I3": {
+      "passing": 4,
+      "failing": 10,
+      "unverified": 0
+    },
+    "I4": {
+      "passing": 0,
+      "failing": 14,
+      "unverified": 0
+    }
+  },
+  "most_common_findings": [
+    {
+      "rule_id": "I1/missing-version-comment",
+      "findings": 341,
+      "repositories_affected": 9
+    },
+    {
+      "rule_id": "I4/no-egress-policy",
+      "findings": 221,
+      "repositories_affected": 14
+    },
+    {
+      "rule_id": "I2/implicit-token-scope",
+      "findings": 86,
+      "repositories_affected": 12
+    },
+    {
+      "rule_id": "I2/persisted-credentials",
+      "findings": 58,
+      "repositories_affected": 10
+    },
+    {
+      "rule_id": "I1/unpinned-action",
+      "findings": 58,
+      "repositories_affected": 5
+    },
+    {
+      "rule_id": "I3/no-sbom",
+      "findings": 48,
+      "repositories_affected": 10
+    },
+    {
+      "rule_id": "I2/excessive-permission",
+      "findings": 42,
+      "repositories_affected": 9
+    },
+    {
+      "rule_id": "I3/no-provenance",
+      "findings": 41,
+      "repositories_affected": 10
+    },
+    {
+      "rule_id": "I2/no-default-deny",
+      "findings": 11,
+      "repositories_affected": 6
+    },
+    {
+      "rule_id": "I3/no-admission-verification",
+      "findings": 10,
+      "repositories_affected": 10
+    },
+    {
+      "rule_id": "I2/privileged-trigger",
+      "findings": 9,
+      "repositories_affected": 3
+    }
+  ],
+  "caveats": [
+    "Aggregate only. No individual repository is named, by policy.",
+    "The sample is small and deliberately chosen, not random. It describes these projects and is not a population estimate.",
+    "Only .github/workflows was read. Reusable workflows called from other repositories were not followed.",
+    "I4 is assessed by declaration; no runner was observed.",
+    "Comparable only against ruleset 2026.08.1."
+  ]
+}

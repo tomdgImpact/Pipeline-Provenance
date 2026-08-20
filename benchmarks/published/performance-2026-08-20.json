@@ -1,0 +1,80 @@
+{
+  "measured_at": "2026-08-20T20:37:52+00:00",
+  "tool_version": "0.1.0.dev0",
+  "ruleset_version": "2026.08.1",
+  "machine": {
+    "platform": "macOS-26.6.1-arm64-arm-64bit",
+    "python": "3.12.13",
+    "processor": "arm"
+  },
+  "measurements": [
+    {
+      "target": "hardened",
+      "workflows": 2,
+      "findings": 0,
+      "repeats": 20,
+      "median_ms": 9.88,
+      "p95_ms": 13.03,
+      "max_ms": 13.25
+    },
+    {
+      "target": "invalid-yaml",
+      "workflows": 1,
+      "findings": 4,
+      "repeats": 20,
+      "median_ms": 1.18,
+      "p95_ms": 1.42,
+      "max_ms": 2.06
+    },
+    {
+      "target": "monorepo",
+      "workflows": 3,
+      "findings": 7,
+      "repeats": 20,
+      "median_ms": 9.44,
+      "p95_ms": 11.63,
+      "max_ms": 12.56
+    },
+    {
+      "target": "naive",
+      "workflows": 1,
+      "findings": 13,
+      "repeats": 20,
+      "median_ms": 4.9,
+      "p95_ms": 5.96,
+      "max_ms": 6.11
+    },
+    {
+      "target": "no-workflows",
+      "workflows": 0,
+      "findings": 0,
+      "repeats": 20,
+      "median_ms": 0.43,
+      "p95_ms": 0.57,
+      "max_ms": 0.71
+    },
+    {
+      "target": "partial",
+      "workflows": 1,
+      "findings": 6,
+      "repeats": 20,
+      "median_ms": 5.84,
+      "p95_ms": 8.62,
+      "max_ms": 9.09
+    },
+    {
+      "target": "Pipeline-Provenance",
+      "workflows": 2,
+      "findings": 2,
+      "repeats": 20,
+      "median_ms": 62.22,
+      "p95_ms": 80.02,
+      "max_ms": 81.36
+    }
+  ],
+  "caveats": [
+    "Wall clock on one developer machine, stated above. Not a portable figure and not a claim about any other hardware.",
+    "Offline: no network call is made, so no network variance is included and none is being hidden either.",
+    "The largest target here is this repository. A monorepo with hundreds of workflows was not measured."
+  ]
+}

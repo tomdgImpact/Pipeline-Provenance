@@ -82,3 +82,62 @@ class TestPerformance:
         micro-benchmark, so it does not fail on a loaded CI runner."""
         row = performance.time_audit(Path(__file__).resolve().parents[2], repeats=3)
         assert row["median_ms"] < 5000
+
+
+class TestDistributionStudy:
+    """The online study is opt-in, aggregate-only, and says so."""
+
+    def test_it_refuses_without_the_online_flag(self) -> None:
+        """A figure derived from nothing is worse than a missing figure."""
+        import subprocess
+        import sys
+
+        process = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            [sys.executable, "-m", "benchmarks.distribution"],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).resolve().parents[2],
+            check=False,
+        )
+        assert process.returncode == 2
+        assert "opt-in" in process.stderr
+
+    def test_the_corpus_is_committed_so_the_sample_is_reproducible(self) -> None:
+        from benchmarks import distribution
+
+        repositories = [
+            line.strip()
+            for line in distribution.CORPUS.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        assert len(repositories) >= 10
+        assert all("/" in name for name in repositories)
+
+    def test_no_published_figure_names_an_individual_repository(self) -> None:
+        """SC-003 forbids it. The point is the shape of the distribution, and
+        naming projects would turn a measurement into an accusation."""
+        import json
+
+        published = Path(__file__).resolve().parents[2] / "benchmarks" / "published"
+        from benchmarks import distribution
+
+        names = [
+            line.strip()
+            for line in distribution.CORPUS.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        for report in published.glob("distribution-*.json"):
+            text = json.dumps(json.loads(report.read_text()))
+            for name in names:
+                assert name not in text, f"{report.name} names {name}"
+
+    def test_every_published_figure_records_its_ruleset(self) -> None:
+        import json
+
+        published = Path(__file__).resolve().parents[2] / "benchmarks" / "published"
+        reports = list(published.glob("*.json"))
+        assert reports, "no published figures found"
+        for report in reports:
+            document = json.loads(report.read_text())
+            assert document["ruleset_version"]
+            assert document["caveats"]

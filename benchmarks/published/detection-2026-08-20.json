@@ -1,0 +1,76 @@
+{
+  "measured_at": "2026-08-20T20:37:52+00:00",
+  "tool_version": "0.1.0.dev0",
+  "ruleset_version": "2026.08.1",
+  "corpus": {
+    "kind": "hand-curated synthetic fixtures",
+    "repositories": 6,
+    "declared_defects": 30
+  },
+  "sc_001_detection": {
+    "true_positives": 30,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "sc_002_false_positives_on_clean_repositories": {
+    "repositories": 2,
+    "false_positives": 0
+  },
+  "per_fixture": [
+    {
+      "fixture": "hardened",
+      "declared": 0,
+      "reported": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    {
+      "fixture": "invalid-yaml",
+      "declared": 4,
+      "reported": 4,
+      "true_positives": 4,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    {
+      "fixture": "monorepo",
+      "declared": 7,
+      "reported": 7,
+      "true_positives": 7,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    {
+      "fixture": "naive",
+      "declared": 13,
+      "reported": 13,
+      "true_positives": 13,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    {
+      "fixture": "no-workflows",
+      "declared": 0,
+      "reported": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0
+    },
+    {
+      "fixture": "partial",
+      "declared": 6,
+      "reported": 6,
+      "true_positives": 6,
+      "false_positives": 0,
+      "false_negatives": 0
+    }
+  ],
+  "caveats": [
+    "The corpus is hand-curated and synthetic. These figures describe detection against declared intent on six small repositories, and say nothing about the long tail of real-world workflows.",
+    "The denominator is the defect table in each fixture's intent.md, written before the rule that detects it.",
+    "Figures are only comparable against ruleset 2026.08.1."
+  ]
+}
