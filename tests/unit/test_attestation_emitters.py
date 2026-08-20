@@ -91,7 +91,9 @@ class TestStatement:
 
     def test_the_source_revision_is_recorded_as_a_resolved_dependency(self) -> None:
         document = _statement()
-        dependencies = document["predicate"]["buildDefinition"]["resolvedDependencies"]  # type: ignore[index]
+        predicate = document["predicate"]
+        assert isinstance(predicate, dict)
+        dependencies = predicate["buildDefinition"]["resolvedDependencies"]
         assert dependencies[0]["digest"]["gitCommit"] == "b" * 40
 
     def test_nothing_in_the_statement_claims_the_artifact_is_correct(self) -> None:
@@ -120,7 +122,9 @@ class TestSbom:
         document = sbom.document(
             subjects=(_subject(),), serial_number="urn:uuid:1", timestamp=STAMP
         )
-        properties = document["metadata"]["properties"]  # type: ignore[index]
+        metadata = document["metadata"]
+        assert isinstance(metadata, dict)
+        properties = metadata["properties"]
         coverage = next(p for p in properties if p["name"] == sbom.COVERAGE_PROPERTY)
         assert "no ecosystem-aware component resolution" in coverage["value"]
 
@@ -131,7 +135,9 @@ class TestSbom:
             timestamp=STAMP,
             components=({"type": "library", "name": "requests", "version": "2.32.3"},),
         )
-        assert any(c["name"] == "requests" for c in document["components"])  # type: ignore[index]
+        components = document["components"]
+        assert isinstance(components, list)
+        assert any(c["name"] == "requests" for c in components)
 
 
 class TestAtomicity:
