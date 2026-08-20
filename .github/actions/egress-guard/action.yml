@@ -1,0 +1,34 @@
+name: Egress guard
+description: >
+  Deny outbound network access from this job by default, permitting only the
+  hosts named in the allowlist. Must be the first step of the job: anything
+  before it runs unrestricted, and that window is all an attacker needs.
+
+inputs:
+  allowed-endpoints:
+    description: >
+      Whitespace-separated host:port list this job may reach. Everything else
+      is refused. There is no wildcard, deliberately.
+    required: true
+  mode:
+    description: >
+      block or audit. Defaults to block. audit records and permits, which is
+      telemetry rather than a control, and `ppv audit` reports it as such.
+    required: false
+    default: block
+
+runs:
+  using: composite
+  steps:
+    - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2
+      with:
+        egress-policy: ${{ inputs.mode }}
+        allowed-endpoints: ${{ inputs.allowed-endpoints }}
+    - name: Report when the platform cannot enforce this
+      shell: bash
+      run: |
+        if [ "${RUNNER_ENVIRONMENT:-}" = "self-hosted" ]; then
+          echo "::warning title=I4 unenforceable::Egress control is not enforced" \
+               "on self-hosted runners by this action. The invariant is reported" \
+               "as unverified rather than claimed."
+        fi

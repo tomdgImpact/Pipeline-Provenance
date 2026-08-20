@@ -15,7 +15,7 @@ import pytest
 from ruamel.yaml import YAML
 
 from pipeline_provenance.audit import audit
-from pipeline_provenance.model import Status
+from pipeline_provenance.model import Assessment, Status
 
 pytestmark = pytest.mark.security
 
@@ -128,6 +128,10 @@ def test_no_job_requests_write_scope_it_does_not_need(
     `security-events: write` is expected on the SAST job, which uploads SARIF.
     Anything else with write scope is a finding.
     """
+    # id-token and attestations mint a short-lived signing identity and cannot
+    # modify the repository, so they are not repository write scope. The SAST
+    # job's security-events: write is argued in docs/THREAT_MODEL.md section 9.
+    attestation_scopes = {"id-token", "attestations"}
     allowed = {("ci.yml", "sast", "security-events")}
     offenders: list[str] = []
     for path in workflow_files:
@@ -136,7 +140,11 @@ def test_no_job_requests_write_scope_it_does_not_need(
             if not isinstance(permissions, dict):
                 continue
             for scope, level in permissions.items():
-                if level == "write" and (path.name, name, scope) not in allowed:
+                if (
+                    level == "write"
+                    and scope not in attestation_scopes
+                    and (path.name, name, scope) not in allowed
+                ):
                     offenders.append(f"{path.name}:{name}: {scope}: write")
     assert not offenders, "unexpected write scope:\n  " + "\n  ".join(offenders)
 
@@ -204,18 +212,34 @@ class TestSelfAudit:
         }
     )
 
-    def test_the_self_audit_reports_only_accepted_findings(
+    def test_no_confirmed_violation_beyond_the_argued_exception(
         self, repo_root: Path
     ) -> None:
         result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
         unexpected = [
             f
-            for f in result.findings
+            for f in result.verified_findings
             if not any(f.rule_id == rule for rule, _ in self.ACCEPTED)
         ]
         assert not unexpected, "unaccepted findings against this repository:\n  " + (
             "\n  ".join(f"{f.rule_id} at {f.location}" for f in unexpected)
         )
+
+    def test_every_unverified_finding_is_explained_in_the_caveats(
+        self, repo_root: Path
+    ) -> None:
+        """An unverified finding is not a violation, and it is not a pass
+        either. It has to reach a reader who only skims, so the caveat list
+        must say why the check did not complete."""
+        result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
+        unverified = [
+            f for f in result.findings if f.assessment is Assessment.UNVERIFIED
+        ]
+        for finding in unverified:
+            assert any(
+                finding.invariant.value in statement
+                for statement in result.unverifiable
+            ), f"{finding.rule_id} is unverified but no caveat says why"
 
     def test_the_accepted_exception_still_exists(self, repo_root: Path) -> None:
         """If the exception is ever fixed, this fails and forces the list to
@@ -228,11 +252,16 @@ class TestSelfAudit:
                 "Remove it from ACCEPTED."
             )
 
-    def test_three_of_four_invariants_hold_against_this_repository(
-        self, repo_root: Path
-    ) -> None:
+    def test_the_pinning_and_egress_invariants_hold(self, repo_root: Path) -> None:
         result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
         statuses = {r.invariant.value: r.status for r in result.invariants}
         assert statuses["I1"] is Status.PASSING
-        assert statuses["I3"] is Status.PASSING
         assert statuses["I4"] is Status.PASSING
+
+    def test_provenance_is_unverified_and_not_claimed(self, repo_root: Path) -> None:
+        """This repository ships a build workflow and owns no admission point;
+        its consumers do. The tool reports that as unverified, which is the
+        honest answer and explicitly not a pass."""
+        result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
+        statuses = {r.invariant.value: r.status for r in result.invariants}
+        assert statuses["I3"] is Status.UNVERIFIED
