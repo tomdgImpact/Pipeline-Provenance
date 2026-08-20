@@ -24,7 +24,7 @@ from pipeline_provenance.model import (
     ExitCode,
     Status,
 )
-from pipeline_provenance.report import json_out, sarif_out
+from pipeline_provenance.report import html_out, json_out, sarif_out
 
 STATUS_MARK: dict[Status, str] = {
     Status.PASSING: "pass",
@@ -91,6 +91,7 @@ RENDERERS: dict[str, Callable[[AuditResult], str]] = {
     "text": render_text,
     "json": json_out.render,
     "sarif": sarif_out.render,
+    "html": html_out.render,
 }
 
 
@@ -111,7 +112,10 @@ def main() -> None:
     "output_format",
     type=click.Choice(sorted(RENDERERS)),
     default="text",
-    help="text for a human, json for the contract, sarif for code scanning.",
+    help=(
+        "text for a terminal, json for the contract, sarif for code scanning, "
+        "html to read."
+    ),
 )
 @click.option(
     "-o",
@@ -163,7 +167,7 @@ def doctor() -> None:
     """
     capabilities: list[tuple[str, bool, str]] = [
         ("offline static audit", True, "`ppv audit <path>`"),
-        ("json and sarif output", True, "`--format json|sarif`"),
+        ("json, sarif and html output", True, "`--format json|sarif|html`"),
         (
             "remote reference resolution",
             False,
