@@ -63,3 +63,18 @@ def test_doctor_does_not_claim_an_unavailable_capability(
     assert result.exit_code == 0
     line = next(row for row in result.output.splitlines() if "remote reference" in row)
     assert "UNAVAILABLE" in line
+
+
+def test_no_module_marks_a_value_safe_for_html(repo_root: Path) -> None:
+    """`markupsafe.Markup` is an escape hatch that has to be trusted.
+
+    The HTML report needs a raw JSON payload in a script block, which is the
+    textbook reason to reach for it. Substituting the payload after rendering
+    removes the need instead of documenting it, and this asserts the escape
+    hatch stays gone — the annotation would survive a refactor that reintroduced
+    the risk, and the absence of the import does not.
+    """
+    for source in (repo_root / "src").rglob("*.py"):
+        text = source.read_text()
+        assert "markupsafe" not in text, f"{source} imports markupsafe"
+        assert "Markup(" not in text, f"{source} marks a value safe"

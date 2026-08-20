@@ -18,27 +18,34 @@ from collections import Counter
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from markupsafe import Markup
 
 from pipeline_provenance.model import AuditResult, Severity
 from pipeline_provenance.report import json_out
 
+#: Placeholder the template carries where the JSON payload belongs. The payload
+#: is substituted after rendering rather than passed through the template
+#: engine, so no value in this module is ever marked safe.
+PAYLOAD_PLACEHOLDER = "PPV_RESULT_PAYLOAD_PLACEHOLDER"  # noqa: S105
 
-def _embeddable_json(result: AuditResult) -> Markup:
+
+def _embeddable_json(result: AuditResult) -> str:
     """Serialise the result for a ``<script type="application/json">`` block.
 
-    ``<``, ``>`` and ``&`` are escaped as JSON unicode escapes rather than HTML
+    ``<``, ``>`` and ``&`` become JSON unicode escapes rather than HTML
     entities: the block is parsed as JSON, not as HTML, so entity-escaping it
-    would corrupt the payload while unicode escapes survive both readers. This
-    is also what stops a `</script>` inside audited repository content from
+    would corrupt the payload while unicode escapes survive both readers. It is
+    also what stops a ``</script>`` inside audited repository content from
     ending the block early.
+
+    The result is substituted into the rendered document by
+    :func:`render` rather than passed through Jinja. Marking a value safe is an
+    escape hatch that has to be trusted; not needing one is a property that does
+    not.
     """
     payload = json_out.render(result, indent=0).strip()
     for character, escape in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026")):
         payload = payload.replace(character, escape)
-    # S704: the payload is escaped immediately above precisely so that it can
-    # be emitted verbatim. Autoescaping it as HTML would corrupt valid JSON.
-    return Markup(payload)  # noqa: S704
+    return payload
 
 
 TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -61,12 +68,13 @@ def render(result: AuditResult) -> str:
     ]
     target = result.target
     template = _ENVIRONMENT.get_template(TEMPLATE_NAME)
-    return template.render(
+    document = template.render(
         result=result,
         findings=findings,
         summary=result.to_dict()["summary"],
         severity_counts=severity_counts,
         target=target,
         target_name=Path(target).name or target,
-        result_json=_embeddable_json(result),
+        result_json=PAYLOAD_PLACEHOLDER,
     )
+    return document.replace(PAYLOAD_PLACEHOLDER, _embeddable_json(result))
