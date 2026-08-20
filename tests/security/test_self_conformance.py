@@ -265,3 +265,59 @@ class TestSelfAudit:
         result = audit(repo_root, generated_at="1970-01-01T00:00:00Z")
         statuses = {r.invariant.value: r.status for r in result.invariants}
         assert statuses["I3"] is Status.UNVERIFIED
+
+
+class TestPublishedClaims:
+    """Every number in the README must be re-derivable from the harness.
+
+    A figure a reader cannot reproduce is a figure they have to take on trust,
+    and this project asks for less trust than that.
+    """
+
+    @pytest.fixture
+    def readme(self, repo_root: Path) -> str:
+        return (repo_root / "README.md").read_text()
+
+    def test_the_detection_figures_match_the_published_record(
+        self, repo_root: Path, readme: str
+    ) -> None:
+        import json
+
+        published = json.loads(
+            (
+                repo_root / "benchmarks" / "published" / "detection-2026-08-20.json"
+            ).read_text()
+        )
+        assert published["sc_001_detection"]["precision"] == 1.0
+        assert published["sc_001_detection"]["recall"] == 1.0
+        assert published["corpus"]["declared_defects"] == 30
+        assert "30 declared defects" in readme
+
+    def test_the_distribution_figures_match_the_published_record(
+        self, repo_root: Path, readme: str
+    ) -> None:
+        import json
+
+        published = json.loads(
+            (
+                repo_root / "benchmarks" / "published" / "distribution-2026-08-20.json"
+            ).read_text()
+        )
+        examined = published["sample"]["examined"]
+        assert (
+            f"{examined} widely-used open-source projects"
+            in readme.replace("Fourteen", "14")
+            or "Fourteen widely-used open-source projects" in readme
+        )
+        assert published["sample"]["workflow_files"] == 101
+        assert "101\nworkflow files" in readme or "101 workflow files" in readme
+
+    def test_every_published_number_names_its_date(self, readme: str) -> None:
+        assert readme.count("measured 2026-08-20") >= 2
+
+    def test_the_limitations_section_is_still_there(self, readme: str) -> None:
+        """It is a mandatory deliverable, and the section most likely to be
+        trimmed by someone tidying up before a launch."""
+        assert "## Limitations" in readme
+        assert "never that it is correct" in readme
+        assert "no third-party review" in readme.lower()
