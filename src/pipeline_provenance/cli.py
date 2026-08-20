@@ -14,12 +14,7 @@ import sys
 import click
 
 from . import SCHEMA_VERSION, __version__
-
-# Exit codes are part of the CLI contract (FR-009). Keep them stable.
-EXIT_CLEAN = 0
-EXIT_FINDINGS = 1
-EXIT_NOTHING_TO_AUDIT = 2
-EXIT_ERROR = 3
+from .model import ExitCode
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -72,7 +67,7 @@ def doctor() -> None:
     click.echo("command depending on one refuses to run rather than returning a")
     click.echo("result that looks clean.")
 
-    sys.exit(EXIT_CLEAN)
+    sys.exit(ExitCode.CLEAN)
 
 
 if __name__ == "__main__":  # pragma: no cover - module entry point
