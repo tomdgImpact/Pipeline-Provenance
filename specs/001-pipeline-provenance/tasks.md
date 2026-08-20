@@ -37,15 +37,14 @@ tasks touching the HTML report carry browser coverage. This is not optional here
 
 **Purpose**: the shared vocabulary. Nothing else can start.
 
-- [ ] **T004** [N1] `model.py` — `Reference`, `Finding`, `AuditResult`,
+- [x] **T004** [N1] `model.py` — `Reference`, `Finding`, `AuditResult`,
       `AttestationSet`, `AdmissionDecision`; schema version constant; the
       `verified | unverified` assessment state as a required field
       → `feature/result-model`
-- [ ] **T005** [N1] JSON Schema for `AuditResult`, and a test asserting every
+- [x] **T005** [N1] JSON Schema for `AuditResult`, and a test asserting every
       renderer output validates against it → `feature/result-schema`
 
-**Checkpoint**: the result contract is fixed. Rules and renderers can proceed in
-parallel.
+**Checkpoint**: the result contract is fixed. ✅ landed 2026-08-20.
 
 ---
 
@@ -57,39 +56,39 @@ set matches exactly by ID and location.
 
 ### Tests
 
-- [ ] **T006** [P] [US1] Fixture repositories: `naive`, `partial`, `hardened`,
+- [x] **T006** [P] [US1] Fixture repositories: `naive`, `partial`, `hardened`,
       `invalid-yaml`, `no-workflows`, `monorepo` → `feature/audit-fixtures`
-- [ ] **T007** [P] [US1] Unit tests for every edge case listed in `spec.md`
+- [x] **T007** [P] [US1] Unit tests for every edge case listed in `spec.md`
       → `feature/audit-edge-case-tests`
 
 ### Implementation
 
-- [ ] **T008** [N2] [US1] `discovery.py` — locate workflows, composite actions,
+- [x] **T008** [N2] [US1] `discovery.py` — locate workflows, composite actions,
       lockfiles and image references; carry file and line through
       → `feature/reference-discovery`
-- [ ] **T009** [P] [N3] [US1] Rule `i1_pinning` — FR-001; dangling-pin case
+- [x] **T009** [P] [N3] [US1] Rule `i1_pinning` — FR-001; dangling-pin case
       → `feature/rule-pinning`
-- [ ] **T010** [P] [N3] [US1] Rule `i2_least_privilege` — FR-002, FR-003;
+- [x] **T010** [P] [N3] [US1] Rule `i2_least_privilege` — FR-002, FR-003;
       effective vs declared scope; privileged triggers
       → `feature/rule-least-privilege`
-- [ ] **T011** [P] [N3] [US1] Rule `i3_provenance` — FR-004; admission-point
+- [x] **T011** [P] [N3] [US1] Rule `i3_provenance` — FR-004; admission-point
       discovery; `unverified` when none is discoverable
       → `feature/rule-provenance-coverage`
-- [ ] **T012** [P] [N3] [US1] Rule `i4_egress` — FR-014, FR-015; unenforceable
+- [x] **T012** [P] [N3] [US1] Rule `i4_egress` — FR-014, FR-015; unenforceable
       environments reported as such → `feature/rule-egress`
-- [ ] **T013** [N4] [US1] `cli.py` — `audit`, `doctor`; exit codes per FR-009;
+- [x] **T013** [N4] [US1] `cli.py` — `audit`, `doctor`; exit codes per FR-009;
       offline by default, `--remote` gated on an explicit token
       → `feature/audit-cli`
-- [ ] **T014** [P] [N5] [US1] JSON and SARIF renderers → `feature/renderers-json-sarif`
-- [ ] **T015** [P] [N5] [US1] Self-contained HTML report, no external assets
+- [x] **T014** [P] [N5] [US1] JSON and SARIF renderers → `feature/renderers-json-sarif`
+- [x] **T015** [P] [N5] [US1] Self-contained HTML report, no external assets
       → `feature/renderer-html`
-- [ ] **T016** [N12] [US1] Browser suite: renders offline, findings navigable,
+- [x] **T016** [N12] [US1] Browser suite: renders offline, findings navigable,
       score matches JSON, finding list keyboard-reachable
       → `feature/html-report-browser-tests`
-- [ ] **T017** [N12] [US1] End-to-end CLI suite against every fixture, asserting
+- [x] **T017** [N12] [US1] End-to-end CLI suite against every fixture, asserting
       full documents and exit codes → `feature/audit-e2e-suite`
 
-**Checkpoint**: US1 ships on its own. The MVP is releasable here.
+**Checkpoint**: US1 ships on its own. The MVP is releasable here. ✅ landed 2026-08-20.
 
 ---
 
