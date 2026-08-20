@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# Local tooling and scratch context — never committed.
+# Anything in this block is developer-local: editor state, assistant context,
+# personal notes. The repository must build and be reviewable without it.
+# ---------------------------------------------------------------------------
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+AGENT.md
+GEMINI.md
+INIT.md
+NOTES.md
+TODO.local.md
+*.local.md
+.claude/
+.specify/
+.cursor/
+.cursorrules
+.windsurfrules
+.aider*
+.github/copilot-instructions.md
+.roo/
+.continue/
+
+# ---------------------------------------------------------------------------
+# Editors and OS
+# ---------------------------------------------------------------------------
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ---------------------------------------------------------------------------
+# Node (GUI test harness only)
+# ---------------------------------------------------------------------------
+node_modules/
+playwright-report/
+test-results/
+.playwright/
+
+# ---------------------------------------------------------------------------
+# Secrets and local configuration
+# .env.example is committed; .env never is.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+cosign.key
+
+# ---------------------------------------------------------------------------
+# Build, audit and attestation output
+# ---------------------------------------------------------------------------
+out/
+reports/
+*.sbom.json
+*.intoto.jsonl
+*.sarif
+benchmarks/results/
