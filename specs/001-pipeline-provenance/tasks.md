@@ -20,16 +20,16 @@ tasks touching the HTML report carry browser coverage. This is not optional here
 
 **Purpose**: the repository builds, lints and type-checks before any rule exists.
 
-- [ ] **T001** Python package skeleton, `pyproject.toml`, `ppv` entry point,
+- [x] **T001** Python package skeleton, `pyproject.toml`, `ppv` entry point,
       `uv` lockfile → `feature/package-skeleton`
-- [ ] **T002** [P] Lint and type configuration: `ruff`, `mypy --strict`,
+- [x] **T002** [P] Lint and type configuration: `ruff`, `mypy --strict`,
       `pytest` markers `security` and `demo` → `feature/lint-and-type-config`
-- [ ] **T003** [P] CI workflow with every gate blocking: lint, type check, unit
+- [x] **T003** [P] CI workflow with every gate blocking: lint, type check, unit
       tests, `pip-audit`, `bandit`, `semgrep`, `gitleaks`, `trivy fs`, plus a
       separate adversarial step that fails on zero collected tests or any skip
       → `feature/ci-gates`
 
-**Checkpoint**: `make check` is green on an empty implementation.
+**Checkpoint**: `make check` is green on an empty implementation. ✅ landed 2026-08-20, together with a seeded adversarial corpus asserting this repository satisfies the invariants it sells.
 
 ---
 
