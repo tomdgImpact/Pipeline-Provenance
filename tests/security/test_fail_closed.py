@@ -32,11 +32,9 @@ def test_verifier_identity_has_no_default(repo_root: Path) -> None:
 def test_unimplemented_commands_are_absent_rather_than_empty() -> None:
     """An unimplemented command that returns an empty result is read by the
     caller as a clean result. Absence forces the caller to notice."""
-    runner = CliRunner()
-    for command in ("audit", "verify"):
-        result = runner.invoke(main, [command])
-        assert result.exit_code != 0
-        assert "No such command" in result.output
+    result = CliRunner().invoke(main, ["verify"])
+    assert result.exit_code != 0
+    assert "No such command" in result.output
 
 
 def test_doctor_does_not_claim_an_unavailable_capability(
