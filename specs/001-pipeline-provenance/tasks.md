@@ -169,7 +169,7 @@ in the hardened run.
 - [x] **T036** [N15] README: thesis, architecture, invariants with enforcement
       points, adversarial proof, measured results with per-row caveats, and the
       Limitations section — FR-024, FR-025 → `feature/readme-results`
-- [ ] **T037** [N15] Release v0.1.0: CycloneDX SBOM generated in CI and attached,
+- [x] **T037** [N15] Release v0.1.0: CycloneDX SBOM generated in CI and attached,
       artifacts signed with cosign, tagged → `feature/release-v0-1-0`
 
 ---

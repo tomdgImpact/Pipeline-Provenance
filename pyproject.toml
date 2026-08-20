@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pipeline-provenance"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Supply-chain hardening for CI/CD: four enforced invariants, signed provenance, and an audit CLI."
 readme = "README.md"
 license = { file = "LICENSE" }
