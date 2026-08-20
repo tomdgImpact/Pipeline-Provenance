@@ -29,12 +29,29 @@ def test_verifier_identity_has_no_default(repo_root: Path) -> None:
         )
 
 
-def test_unimplemented_commands_are_absent_rather_than_empty() -> None:
-    """An unimplemented command that returns an empty result is read by the
-    caller as a clean result. Absence forces the caller to notice."""
+def test_verify_refuses_without_the_documents_it_needs() -> None:
+    """`verify` never runs on a partial input. The attestation set is atomic,
+    and a verifier that accepts half of one accepts anything."""
     result = CliRunner().invoke(main, ["verify"])
     assert result.exit_code != 0
-    assert "No such command" in result.output
+
+
+def test_verify_refuses_with_no_expected_identity(tmp_path: Path) -> None:
+    """An identity that defaults to "any" turns verification into decoration."""
+    from pipeline_provenance.attest.verify import Policy, verify
+
+    artifact = tmp_path / "app.whl"
+    artifact.write_bytes(b"payload")
+    from pipeline_provenance.model import AttestationSet, Subject
+
+    attestation = AttestationSet(
+        subjects=(Subject(name="app.whl", sha256="a" * 64),),
+        provenance={"predicate": {}},
+        sbom={"bomFormat": "CycloneDX"},
+    )
+    decision = verify(artifact, attestation, Policy(expected_identity=""))
+    assert decision.accepted is False
+    assert "no expected signer identity" in decision.reason
 
 
 def test_doctor_does_not_claim_an_unavailable_capability(

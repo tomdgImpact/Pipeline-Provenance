@@ -120,22 +120,22 @@ policy gate before any third-party step runs.
 **Independent test**: valid / absent / wrong-identity attestation → accept /
 refuse / refuse.
 
-- [ ] **T023** [P] [N6] [US3] SLSA provenance emitter — in-toto statement,
+- [x] **T023** [P] [N6] [US3] SLSA provenance emitter — in-toto statement,
       builder identity, resolved dependencies → `feature/slsa-provenance-emitter`
-- [ ] **T024** [P] [N7] [US3] CycloneDX SBOM emitter → `feature/sbom-emitter`
-- [ ] **T025** [US3] Atomic attestation set — FR-017, a build producing one
+- [x] **T024** [P] [N7] [US3] CycloneDX SBOM emitter → `feature/sbom-emitter`
+- [x] **T025** [US3] Atomic attestation set — FR-017, a build producing one
       document without the other fails → `feature/atomic-attestation-set`
-- [ ] **T026** [N8] [US3] Keyless signing bound to the workflow identity
+- [x] **T026** [N8] [US3] Keyless signing bound to the workflow identity
       → `feature/keyless-signing`
-- [ ] **T027** [N8] [US3] Admission verifier — FR-018, FR-019; no permissive
+- [x] **T027** [N8] [US3] Admission verifier — FR-018, FR-019; no permissive
       default; refuses when the transparency log is unreachable
       → `feature/admission-verifier`
-- [ ] **T028** [US3] Build-time verification emitted as advisory and labelled
+- [x] **T028** [US3] Build-time verification emitted as advisory and labelled
       as such — FR-020 → `feature/advisory-build-time-check`
-- [ ] **T029** [US3] End-to-end verification suite across the three cases
+- [x] **T029** [US3] End-to-end verification suite across the three cases
       → `feature/verification-e2e-suite`
 
-**Checkpoint**: US1, US2 and US3 independently functional.
+**Checkpoint**: US1, US2 and US3 independently functional. ✅ landed 2026-08-20.
 
 ---
 

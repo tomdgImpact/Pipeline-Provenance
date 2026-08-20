@@ -46,14 +46,14 @@ than passing wherever it cannot assess an invariant. ✅
 third-party step executes, and an environment that cannot enforce egress control
 reports the invariant as unenforceable rather than claiming it.
 
-## Phase 3 — Refuse an unattested artifact (US3)
+## Phase 3 — Refuse an unattested artifact (US3) ✅
 
-- [ ] SLSA provenance and CycloneDX SBOM emitters (T023, T024)
-- [ ] Atomic attestation set — one without the other fails the build (T025)
-- [ ] Keyless signing bound to the workflow identity (T026)
-- [ ] Admission verifier with no permissive default (T027)
-- [ ] Build-time verification, labelled advisory (T028)
-- [ ] End-to-end verification across valid, absent and wrong-identity cases (T029)
+- [x] SLSA provenance and CycloneDX SBOM emitters (T023, T024)
+- [x] Atomic attestation set — one without the other fails the build (T025)
+- [x] Keyless signing bound to the workflow identity (T026)
+- [x] Admission verifier with no permissive default (T027)
+- [x] Build-time verification, labelled advisory (T028)
+- [x] End-to-end verification across valid, absent and wrong-identity cases (T029)
 
 **Exit criterion:** the verifier refuses to run at all when no expected identity
 is configured, and refuses an artifact when the transparency log is unreachable.
