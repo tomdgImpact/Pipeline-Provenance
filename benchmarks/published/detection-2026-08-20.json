@@ -1,6 +1,6 @@
 {
-  "measured_at": "2026-08-20T20:37:52+00:00",
-  "tool_version": "0.1.0.dev0",
+  "measured_at": "2026-08-20T20:43:23+00:00",
+  "tool_version": "0.1.0",
   "ruleset_version": "2026.08.1",
   "corpus": {
     "kind": "hand-curated synthetic fixtures",

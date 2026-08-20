@@ -70,17 +70,19 @@ is configured, and refuses an artifact when the transparency log is unreachable.
 read a secret, cannot reach an unlisted host, and cannot produce a deployable
 artifact — demonstrated end to end, in CI, reproducibly from a public repository.
 
-## Phase 5 — Measurement and release
+## Phase 5 — Measurement and release ✅
 
 - [x] Benchmark harness, offline by default (T034)
 - [x] Aggregate finding distribution across public repositories, no project
       named (T035)
 - [x] README results section with per-row caveats and the Limitations section (T036)
-- [ ] v0.1.0: SBOM generated in CI and attached, artifacts signed, tagged (T037)
+- [x] v0.1.0: SBOM generated in CI and attached, artifacts signed, tagged (T037)
 
 **Exit criterion:** every number published in the README carries the corpus,
 method and date it was measured on, and the project's own SAST returns zero
-high-severity findings against itself.
+high-severity findings against itself. ✅ — with one confirmed finding from the
+project's own audit tool, argued in `docs/THREAT_MODEL.md` §9 rather than
+suppressed.
 
 ## Deliberately not on this roadmap
 
