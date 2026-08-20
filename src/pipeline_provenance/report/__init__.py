@@ -8,4 +8,4 @@ formats will disagree the first time one of them is changed.
 
 from __future__ import annotations
 
-__all__ = ["json_out", "sarif_out"]
+__all__ = ["html_out", "json_out", "sarif_out"]

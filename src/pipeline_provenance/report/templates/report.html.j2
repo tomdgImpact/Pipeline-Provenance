@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-ppv-report="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<!--
+  Self-contained by construction. No stylesheet, script, font or image is
+  fetched from anywhere: a report that phones home is a report that leaks which
+  repository was audited, and one that cannot be read on an air-gapped host.
+  The Content-Security-Policy below is belt and braces — the document has no
+  external references to block.
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>ppv audit — {{ target_name }}</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff; --fg: #16181d; --muted: #5b6270; --line: #e3e6ec;
+    --card: #f7f8fa; --accent: #1f4fd8;
+    --critical: #9b1c1c; --high: #b45309; --medium: #7c5e10; --low: #4b5563;
+    --pass: #14653d; --fail: #9b1c1c; --unverified: #6b4fbb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --fg: #e8eaee; --muted: #a0a7b4; --line: #2a2f38;
+      --card: #1b1e24; --accent: #8ab0ff;
+      --critical: #f98080; --high: #fbbf6f; --medium: #e4d07a; --low: #a9b1c0;
+      --pass: #6ee7a8; --fail: #f98080; --unverified: #c4b5fd;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1.25rem 4rem; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 60rem; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  h2 { font-size: 1.05rem; margin: 2.5rem 0 .75rem; }
+  .meta { color: var(--muted); font-size: .85rem; margin: 0 0 .15rem; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  a { color: var(--accent); }
+  .skip {
+    position: absolute; left: -9999px; top: 0;
+    background: var(--card); padding: .5rem .75rem; border-radius: .35rem;
+  }
+  .skip:focus { left: 1rem; top: 1rem; z-index: 10; }
+  .invariants { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin: 0; padding: 0; list-style: none; }
+  .invariant { background: var(--card); border: 1px solid var(--line); border-radius: .5rem; padding: .8rem .9rem; }
+  .invariant .code { font-weight: 700; letter-spacing: .04em; }
+  .status { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+  .status-passing { color: var(--pass); }
+  .status-failing { color: var(--fail); }
+  .status-unverified { color: var(--unverified); }
+  .invariant p { margin: .35rem 0 0; color: var(--muted); font-size: .85rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem; }
+  .controls button {
+    font: inherit; font-size: .82rem; padding: .3rem .7rem; cursor: pointer;
+    background: var(--card); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 999px;
+  }
+  .controls button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  ol.findings { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+  .finding {
+    border: 1px solid var(--line); border-left-width: 4px; border-radius: .5rem;
+    padding: .8rem .95rem; background: var(--card);
+  }
+  .finding:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .finding[data-severity="critical"] { border-left-color: var(--critical); }
+  .finding[data-severity="high"] { border-left-color: var(--high); }
+  .finding[data-severity="medium"] { border-left-color: var(--medium); }
+  .finding[data-severity="low"] { border-left-color: var(--low); }
+  .finding[hidden] { display: none; }
+  .finding h3 { margin: 0 0 .2rem; font-size: .98rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .45rem; font-size: .72rem; }
+  .tag { border: 1px solid var(--line); border-radius: 999px; padding: .1rem .5rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .tag-severity { font-weight: 700; }
+  .tag-unverified { color: var(--unverified); border-color: currentColor; }
+  .finding p { margin: .35rem 0; }
+  .finding .where, .finding pre { color: var(--muted); font-size: .82rem; }
+  .finding pre { margin: .4rem 0; padding: .5rem .6rem; background: var(--bg); border: 1px solid var(--line); border-radius: .35rem; overflow-x: auto; }
+  .fix { font-size: .87rem; }
+  .empty { background: var(--card); border: 1px solid var(--line); border-radius: .5rem; padding: 1rem; }
+  ul.caveats { padding-left: 1.1rem; color: var(--muted); }
+  footer { margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1rem; color: var(--muted); font-size: .82rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#findings">Skip to findings</a>
+<main>
+  <h1>Pipeline provenance audit</h1>
+  <p class="meta mono" data-ppv="target">{{ target }}</p>
+  <p class="meta">
+    ppv <span data-ppv="tool-version">{{ result.tool_version }}</span> ·
+    ruleset <span data-ppv="ruleset-version">{{ result.ruleset_version }}</span> ·
+    schema <span data-ppv="schema-version">{{ result.schema_version }}</span> ·
+    <span data-ppv="generated-at">{{ result.generated_at }}</span>
+  </p>
+  <p class="meta">
+    <span data-ppv="workflow-count">{{ result.workflows_examined | length }}</span> workflow(s) examined ·
+    <span data-ppv="verified-count">{{ summary.verified }}</span> confirmed ·
+    <span data-ppv="unverified-count">{{ summary.unverified }}</span> unverified
+  </p>
+
+  <h2>Invariants</h2>
+  <ul class="invariants">
+    {% for report in result.invariants %}
+    <li class="invariant" data-ppv-invariant="{{ report.invariant.value }}"
+        data-status="{{ report.status.value }}">
+      <span class="code">{{ report.invariant.value }}</span>
+      <span class="status status-{{ report.status.value }}">{{ report.status.value }}</span>
+      <p>{{ report.invariant.label }}</p>
+      {% if report.note %}<p class="note">{{ report.note }}</p>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  <h2 id="findings">Findings</h2>
+  {% if findings %}
+  <div class="controls" role="group" aria-label="Filter findings by severity">
+    <button type="button" data-filter="all" aria-pressed="true">All ({{ findings | length }})</button>
+    {% for level, count in severity_counts %}
+    <button type="button" data-filter="{{ level }}" aria-pressed="false">{{ level }} ({{ count }})</button>
+    {% endfor %}
+  </div>
+  <ol class="findings" data-ppv="finding-list">
+    {% for finding in findings %}
+    <li class="finding" tabindex="0"
+        data-ppv-finding="{{ finding.rule_id }}"
+        data-severity="{{ finding.severity.value }}"
+        data-invariant="{{ finding.invariant.value }}"
+        data-assessment="{{ finding.assessment.value }}">
+      <h3>{{ finding.title }}</h3>
+      <p class="tags">
+        <span class="tag tag-severity">{{ finding.severity.value }}</span>
+        <span class="tag">{{ finding.invariant.value }}</span>
+        <span class="tag mono">{{ finding.rule_id }}</span>
+        {% for threat in finding.threat_ids %}<span class="tag">{{ threat }}</span>{% endfor %}
+        {% if finding.assessment.value == "unverified" %}
+        <span class="tag tag-unverified">unverified</span>
+        {% endif %}
+      </p>
+      <p class="where mono">{{ finding.location }}</p>
+      <p>{{ finding.detail }}</p>
+      {% if finding.evidence %}<pre class="mono">{{ finding.evidence }}</pre>{% endif %}
+      <p class="fix"><strong>Fix:</strong> {{ finding.remediation }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="empty" data-ppv="no-findings">
+    {% if result.workflows_examined %}
+    No findings. Every invariant was assessable and passed.
+    {% else %}
+    Nothing to audit: no workflow definitions were found. This repository has not been found compliant — it has not been assessed.
+    {% endif %}
+  </p>
+  {% endif %}
+
+  {% if result.unverifiable %}
+  <h2>Could not be established by this run</h2>
+  <ul class="caveats" data-ppv="unverifiable">
+    {% for statement in result.unverifiable %}<li>{{ statement }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <footer>
+    <p>
+      This report covers four named invariants. A repository that scores well here is not "secure"; it satisfies I1 to I4. Provenance proves where an artifact came from, never that it is correct.
+    </p>
+  </footer>
+</main>
+
+<script type="application/json" id="ppv-result">{{ result_json }}</script>
+<script>
+  // The filter is progressive enhancement. With scripting disabled every
+  // finding is already visible, because a report that needs JavaScript to show
+  // its contents is a report somebody will read as empty.
+  (function () {
+    var buttons = document.querySelectorAll('.controls button');
+    var findings = document.querySelectorAll('.finding');
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        var wanted = button.getAttribute('data-filter');
+        buttons.forEach(function (other) {
+          other.setAttribute('aria-pressed', String(other === button));
+        });
+        findings.forEach(function (finding) {
+          var match = wanted === 'all' || finding.getAttribute('data-severity') === wanted;
+          finding.hidden = !match;
+        });
+      });
+    });
+  })();
+</script>
+</body>
+</html>
