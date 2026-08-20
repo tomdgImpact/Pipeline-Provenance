@@ -46,3 +46,49 @@ Issues = "https://github.com/tomdgImpact/Pipeline-Provenance/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pipeline_provenance"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "S", "PTH", "RET", "SIM", "TID", "ARG"]
+# S101 (assert) is expected in tests and is disabled per-file below, not globally.
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "ARG001"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["ruamel.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--strict-markers --strict-config -ra"
+markers = [
+    "security: adversarial corpus. Runs as its own blocking CI step.",
+    "demo: end-to-end supply-chain demonstration. Blocking, and never skipped.",
+    "gui: browser coverage of the HTML report, via Playwright.",
+    "slow: excluded from the fast developer loop, never from CI.",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/pipeline_provenance"]
+
+[tool.coverage.report]
+show_missing = true
+# Raised as the rule set grows. Never lowered to make a build pass.
+fail_under = 80
+
+[tool.bandit]
+exclude_dirs = ["tests", "benchmarks"]
