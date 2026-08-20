@@ -306,3 +306,78 @@ class AuditResult:
                 },
             },
         }
+
+
+@dataclass(frozen=True, slots=True)
+class Subject:
+    """An artifact an attestation is about, named by content."""
+
+    name: str
+    sha256: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"name": self.name, "digest": {"sha256": self.sha256}}
+
+
+@dataclass(frozen=True, slots=True)
+class AttestationSet:
+    """Provenance and SBOM, together or not at all.
+
+    Atomicity is enforced in ``__post_init__`` rather than by a checklist in a
+    workflow, because half an attestation set is not a weaker guarantee — it is
+    a different and useless one. A consumer with provenance and no SBOM cannot
+    answer a component question; one with an SBOM and no provenance cannot tell
+    who wrote the SBOM.
+    """
+
+    subjects: tuple[Subject, ...]
+    provenance: dict[str, Any]
+    sbom: dict[str, Any]
+
+    def __post_init__(self) -> None:
+        if not self.subjects:
+            raise ValueError("an attestation set with no subject attests to nothing")
+        if not self.provenance or not self.sbom:
+            raise ValueError(
+                "the attestation set is atomic: provenance and SBOM are emitted "
+                "together or the build fails"
+            )
+
+
+class Decision(StrEnum):
+    ACCEPT = "accept"
+    REFUSE = "refuse"
+
+
+@dataclass(frozen=True, slots=True)
+class AdmissionDecision:
+    """The outcome at the admission point, and why.
+
+    There is no third state. Anything that is not an explicit accept is a
+    refusal, including every error path — that is what "fail closed" means when
+    written down as a type.
+    """
+
+    decision: Decision
+    reason: str
+    subject: str
+    asserted_identity: str | None = None
+    policy_version: str = RULESET_VERSION
+    checks: tuple[tuple[str, bool, str], ...] = ()
+
+    @property
+    def accepted(self) -> bool:
+        return self.decision is Decision.ACCEPT
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "decision": str(self.decision),
+            "reason": self.reason,
+            "subject": self.subject,
+            "asserted_identity": self.asserted_identity,
+            "policy_version": self.policy_version,
+            "checks": [
+                {"name": name, "passed": passed, "detail": detail}
+                for name, passed, detail in self.checks
+            ],
+        }
