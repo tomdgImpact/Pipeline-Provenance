@@ -1,0 +1,90 @@
+{
+  "exit_code": 1,
+  "invariants": {
+    "I1": "failing",
+    "I2": "failing",
+    "I3": "failing",
+    "I4": "failing"
+  },
+  "findings": [
+    {
+      "rule_id": "I1/unpinned-action",
+      "path": ".github/workflows/release.yml",
+      "line": 16,
+      "severity": "high",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-02"
+      ]
+    },
+    {
+      "rule_id": "I3/no-provenance",
+      "path": ".github/workflows/release.yml",
+      "line": 9,
+      "severity": "high",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I2/excessive-permission",
+      "path": ".github/workflows/release.yml",
+      "line": 12,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-01"
+      ]
+    },
+    {
+      "rule_id": "I2/persisted-credentials",
+      "path": ".github/workflows/release.yml",
+      "line": 16,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-01"
+      ]
+    },
+    {
+      "rule_id": "I3/no-admission-verification",
+      "path": ".github/workflows/release.yml",
+      "line": null,
+      "severity": "medium",
+      "assessment": "unverified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I3/no-sbom",
+      "path": ".github/workflows/release.yml",
+      "line": 9,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-12"
+      ]
+    },
+    {
+      "rule_id": "I4/no-egress-policy",
+      "path": ".github/workflows/release.yml",
+      "line": 9,
+      "severity": "medium",
+      "assessment": "verified",
+      "threat_ids": [
+        "T-08",
+        "T-09"
+      ]
+    }
+  ],
+  "unverifiable": [
+    "I4 is assessed by declaration only: this tool reads what a workflow asks for, and cannot confirm the runner platform enforced it."
+  ],
+  "workflows_examined": [
+    ".github/workflows/api.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/web.yml"
+  ]
+}

@@ -14,6 +14,7 @@ Planted defects, all in `release.yml`:
 | `contents: write` held by a publish job | I2 | `I2/excessive-permission` |
 | No egress policy in `publish` | I4 | `I4/no-egress-policy` |
 | Publishes without provenance or SBOM | I3 | `I3/no-provenance`, `I3/no-sbom` |
+| Nothing in the repository verifies an attestation | I3 | `I3/no-admission-verification` (unverified) |
 
 Expected: all four invariants failing, findings located in `release.yml` only, exit
 code 1.
