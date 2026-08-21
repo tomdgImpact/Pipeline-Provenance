@@ -338,6 +338,7 @@ Read this section before the rest.
 | [`docs/INSTALL.md`](docs/INSTALL.md) | Prerequisites, the three install paths, verification, troubleshooting |
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Trust boundaries, STRIDE, the attack table, accepted residual risk |
 | [`docs/ADOPTION_COST.md`](docs/ADOPTION_COST.md) | What each invariant costs to adopt, what it retires, and when not to adopt it |
+| [`docs/COMPLIANCE_MAPPING.md`](docs/COMPLIANCE_MAPPING.md) | SLSA, SSDF, CRA, NIS2 and DORA — what the invariants evidence, what they do not, and why a passing control is not compliance |
 | [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md) | The rules a change is reviewed against |
 | [`docs/adr/`](docs/adr/) | Why digest pinning, keyless signing, admission-time verification, and what reproducibility is not |
 | [`specs/001-pipeline-provenance/`](specs/001-pipeline-provenance/) | Specification, plan and task graph for v0.1.0 |
