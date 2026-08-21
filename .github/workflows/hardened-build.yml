@@ -5,7 +5,7 @@ name: hardened-build
 #
 #   jobs:
 #     build:
-#       uses: tomdgImpact/Pipeline-Provenance/.github/workflows/hardened-build.yml@27609c6e5c3896d6bb8255571c353f32160e8036 # v0.1.0
+#       uses: tomdgImpact/Pipeline-Provenance/.github/workflows/hardened-build.yml@f9ac3f27c8c3d4ee2853b3d0038ce7347228fc9a # v0.1.1
 #       with:
 #         allowed-endpoints: "pypi.org:443 files.pythonhosted.org:443"
 #         build-command: "python -m build"
