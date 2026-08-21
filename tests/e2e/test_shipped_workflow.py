@@ -47,6 +47,11 @@ class TestGateOrdering:
     ) -> None:
         assert jobs["build"]["needs"] == ["policy-gate"]
 
+    def test_attestation_does_not_start_unless_the_build_finished(
+        self, jobs: dict[str, Any]
+    ) -> None:
+        assert jobs["attest"]["needs"] == ["build"]
+
     def test_the_gate_job_runs_no_third_party_action_before_the_gate(
         self, jobs: dict[str, Any]
     ) -> None:
@@ -63,7 +68,7 @@ class TestGateOrdering:
 
 
 class TestEgress:
-    @pytest.mark.parametrize("job", ["policy-gate", "build"])
+    @pytest.mark.parametrize("job", ["policy-gate", "build", "attest"])
     def test_the_egress_guard_is_the_first_step(
         self, jobs: dict[str, Any], job: str
     ) -> None:
@@ -88,12 +93,48 @@ class TestLeastPrivilege:
     def test_the_gate_job_holds_no_write_scope(self, jobs: dict[str, Any]) -> None:
         assert jobs["policy-gate"]["permissions"] == {"contents": "read"}
 
-    def test_the_build_job_holds_only_attestation_write_scopes(
+    def test_the_build_job_holds_no_write_scope_at_all(
         self, jobs: dict[str, Any]
     ) -> None:
+        """It runs caller-supplied code, so it gets nothing."""
         permissions = jobs["build"]["permissions"]
         writes = {scope for scope, level in permissions.items() if level == "write"}
+        assert writes == set()
+
+    def test_the_attest_job_holds_only_the_signing_scopes(
+        self, jobs: dict[str, Any]
+    ) -> None:
+        permissions = jobs["attest"]["permissions"]
+        writes = {scope for scope, level in permissions.items() if level == "write"}
         assert writes == {"id-token", "attestations"}
+
+    def test_no_job_both_runs_caller_code_and_can_sign(
+        self, jobs: dict[str, Any]
+    ) -> None:
+        """The property the split exists to establish.
+
+        GitHub exposes ACTIONS_ID_TOKEN_REQUEST_TOKEN to every step of a job
+        holding `id-token: write`. A job that also runs caller-supplied code
+        lets that code mint an attestation under this workflow's identity —
+        a valid signature over an artifact nobody here built. Threat model
+        T-13, reachable without compromising anything.
+        """
+        offenders = []
+        for name, job in jobs.items():
+            writes = {
+                scope
+                for scope, level in (job.get("permissions") or {}).items()
+                if level == "write"
+            }
+            if not writes & {"id-token", "attestations"}:
+                continue
+            for step in job.get("steps") or []:
+                if "inputs." in str(step.get("run", "")):
+                    offenders.append(f"{name}: {step.get('name', 'unnamed step')}")
+        assert not offenders, (
+            "job holds a signing scope and runs caller-supplied code:\n  "
+            + "\n  ".join(offenders)
+        )
 
     @pytest.mark.parametrize("job", ["policy-gate", "build"])
     def test_checkout_does_not_persist_credentials(
@@ -109,7 +150,7 @@ class TestLeastPrivilege:
 
 class TestAttestation:
     def test_both_documents_are_emitted(self, jobs: dict[str, Any]) -> None:
-        uses = [step.get("uses", "") for step in jobs["build"]["steps"]]
+        uses = [step.get("uses", "") for step in jobs["attest"]["steps"]]
         assert any("anchore/sbom-action" in reference for reference in uses)
         assert any("attest-build-provenance" in reference for reference in uses)
 
@@ -118,7 +159,7 @@ class TestAttestation:
     ) -> None:
         """The attestation set is atomic; half of it is not a weaker guarantee,
         it is a different and useless one."""
-        scripts = [step.get("run", "") for step in jobs["build"]["steps"]]
+        scripts = [step.get("run", "") for step in jobs["attest"]["steps"]]
         assert any(
             "sbom.cdx.json" in script and "exit 1" in script for script in scripts
         )

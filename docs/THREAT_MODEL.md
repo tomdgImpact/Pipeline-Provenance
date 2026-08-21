@@ -126,7 +126,7 @@ authority; this table is the human-readable index.
 | T-10 | `pull_request_target` workflow executing fork-controlled code with write scope | ADV-3 | A1, A3 | I2 + policy gate rule | A workflow deliberately designed to run fork code |
 | T-11 | Self-hosted runner persistence across jobs | ADV-2 | A1, A2, A5 | Documented, **not enforced** | Full — the tool reports, it does not remediate |
 | T-12 | Unattested artifact deployed because verification is advisory | ADV-1, ADV-2, ADV-3 | A3 | I3 at admission | An admission point that is not this one |
-| T-13 | Attestation generated for the right artifact by the wrong identity | ADV-2 | A4 | I3 (identity assertion in the verifier) | Trust in the OIDC issuer itself |
+| T-13 | Attestation generated for the right artifact by the wrong identity | ADV-2 | A4 | I3 (identity assertion in the verifier), plus job separation: no job holding a signing scope runs caller-supplied code | Trust in the OIDC issuer itself |
 | T-14 | Workflow modified to remove the policy gate | ADV-3 | all | Required status check on protected branches | Repository administrator can remove the requirement |
 
 ## 8. Controls, and where they live

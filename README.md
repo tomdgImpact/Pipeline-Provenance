@@ -209,7 +209,7 @@ Every number below is reproducible from a clean checkout. The raw harness output
 is committed in [`benchmarks/published/`](benchmarks/published/), dated and
 stamped with the ruleset version that produced it.
 
-### Detection quality — ruleset 2026.08.1, measured 2026-08-20
+### Detection quality — ruleset 2026.08.1, measured 2026-08-21
 
 | | Value |
 |---|---|
@@ -266,20 +266,25 @@ were not followed. I4 is assessed by declaration — no runner was observed.
 python -m benchmarks.distribution --online --output out.json
 ```
 
-### Audit performance — measured 2026-08-20
+### Audit performance — measured 2026-08-21
 
-Median wall clock, 20 repetitions, offline, on `macOS-26.6.1-arm64` /
-CPython 3.12:
+Median wall clock, 20 repetitions, offline, on `macOS-26.6.1-arm64-arm-64bit` /
+CPython 3.12.13:
 
 | Target | Workflows | Median | p95 |
 |---|---|---|---|
-| This repository | 2 | **28.8 ms** | 44.0 ms |
-| `monorepo` fixture | 3 | 4.7 ms | 5.0 ms |
-| `naive` fixture | 1 | 2.4 ms | 2.7 ms |
+| This repository | 3 | **115.92 ms** | 148.46 ms |
+| `monorepo` fixture | 3 | 13.99 ms | 17.17 ms |
+| `naive` fixture | 1 | 5.13 ms | 7.54 ms |
 
 Against a 5 s budget (SC-008). One developer machine, named above — not a
 portable figure and not a claim about any other hardware. A monorepo with
-hundreds of workflows was not measured.
+hundreds of workflows was not measured, and the record does not support
+extrapolating past three workflow files.
+
+```bash
+python -m benchmarks.performance
+```
 
 ### The tool against itself
 
@@ -333,6 +338,7 @@ Read this section before the rest.
 | [`docs/INSTALL.md`](docs/INSTALL.md) | Prerequisites, the three install paths, verification, troubleshooting |
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Trust boundaries, STRIDE, the attack table, accepted residual risk |
 | [`docs/ADOPTION_COST.md`](docs/ADOPTION_COST.md) | What each invariant costs to adopt, what it retires, and when not to adopt it |
+| [`docs/COMPLIANCE_MAPPING.md`](docs/COMPLIANCE_MAPPING.md) | SLSA, SSDF, CRA, NIS2 and DORA — what the invariants evidence, what they do not, and why a passing control is not compliance |
 | [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md) | The rules a change is reviewed against |
 | [`docs/adr/`](docs/adr/) | Why digest pinning, keyless signing, admission-time verification, and what reproducibility is not |
 | [`specs/001-pipeline-provenance/`](specs/001-pipeline-provenance/) | Specification, plan and task graph for v0.1.0 |
