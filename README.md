@@ -146,6 +146,18 @@ source ──▶ [ policy gate ]   pinning check, permissions lint, egress polic
 - **A threat model** with trust boundaries, a fourteen-row attack table, and
   accepted residual risk stated in full.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/report-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/report-light.png">
+  <img src="docs/assets/report-light.png"
+       alt="The ppv HTML report: a header naming the audited tree, four invariant cards each marked failing with the caveat that limits it, and the first three of thirteen findings — every one carrying a severity, the rule that raised it, the file and line, the offending snippet, and the fix.">
+</picture>
+
+*`ppv audit --format html` over [`tests/fixtures/repos/naive`](tests/fixtures/repos/naive),
+top of the report. One file, no external references: it renders with the network
+disabled. Regenerate it with
+[`docs/assets/generate_screenshots.py`](docs/assets/generate_screenshots.py).*
+
 ## Adversarial proof
 
 ### The demonstration, in three acts
