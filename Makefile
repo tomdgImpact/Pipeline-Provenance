@@ -9,8 +9,10 @@ help: ## List available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-16s %s\n", $$1, $$2}'
 
 .PHONY: install
-install: ## Install the project and its development dependencies
+install: ## Create .venv and install the project with its development dependencies
+	uv venv --python 3.12
 	uv pip install -e ".[dev,remote]"
+	uv run python -m playwright install chromium
 
 .PHONY: lint
 lint: ## Style and static lint

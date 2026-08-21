@@ -7,9 +7,13 @@ merge until you decide it should.
 ## 0. See your own finding list first
 
 ```bash
-pipx install pipeline-provenance
+git clone https://github.com/tomdgImpact/Pipeline-Provenance
+uv tool install ./Pipeline-Provenance
 ppv audit .
 ```
+
+(The tool is not published to any package index; see
+[`INSTALL.md`](INSTALL.md).)
 
 Nothing has changed yet. Read the list. `ppv audit . --format html -o ppv.html`
 produces a single self-contained file you can send to someone who does not have

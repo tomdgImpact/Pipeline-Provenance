@@ -28,9 +28,13 @@ inputs:
 runs:
   using: composite
   steps:
+    # Installed from this action's own checkout, not from a package index.
+    # Nothing is resolved at build time, so the commit you pinned this action to
+    # is the code that runs — the invariant this action exists to enforce
+    # applies to the action itself.
     - name: Install the gate
       shell: bash
-      run: pipx install --pip-args=--require-hashes pipeline-provenance || pip install pipeline-provenance
+      run: python3 -m pip install --disable-pip-version-check "${GITHUB_ACTION_PATH}/../../.."
 
     - name: Report every violation in this run
       shell: bash
