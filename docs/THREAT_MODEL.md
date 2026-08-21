@@ -53,30 +53,27 @@ of this project changes that. See `SECURITY.md`.
 
 ## 4. Trust boundaries
 
+```mermaid
+flowchart TD
+    push(["developer push"]) --> b1["B1 workflow definition"]
+    b1 --> b2
+
+    third(["third-party code<br>(actions, deps, base images)"]) --> b2
+
+    subgraph untrusted ["B2 — UNTRUSTED EXECUTION CONTEXT"]
+        b2["B2 build job"]
+    end
+
+    b2 -->|"artifact + attestation"| b3["B3 attestation boundary"]
+    b3 --> b4{"B4 admission point"}
+    b4 --> prod(["production"])
 ```
-                        ┌──────────────────────────────────────────────┐
-   developer push ──────▶│ B1  workflow definition                     │
-                        │     trusted only after the policy gate       │
-                        └───────────────────┬──────────────────────────┘
-                                            │
-                        ┌───────────────────▼──────────────────────────┐
-   third-party code ───▶│ B2  build job                                │
-   (actions, deps,      │     UNTRUSTED EXECUTION CONTEXT              │
-    base images)        │     assume arbitrary code runs here          │
-                        └───────────────────┬──────────────────────────┘
-                                            │  artifact + attestation
-                        ┌───────────────────▼──────────────────────────┐
-                        │ B3  attestation boundary                     │
-                        │     signing identity, transparency log       │
-                        └───────────────────┬──────────────────────────┘
-                                            │
-                        ┌───────────────────▼──────────────────────────┐
-                        │ B4  admission point                          │
-                        │     the ONLY place trust is granted          │
-                        └───────────────────┬──────────────────────────┘
-                                            │
-                                       production
-```
+
+- **B1 — workflow definition.** Trusted only after the policy gate.
+- **B2 — build job.** UNTRUSTED EXECUTION CONTEXT: assume arbitrary code runs
+  here.
+- **B3 — attestation boundary.** Signing identity, transparency log.
+- **B4 — admission point.** The ONLY place trust is granted.
 
 The load-bearing claim: **B2 is an untrusted execution context.** Everything
 inside the build job is assumed to be attacker-controlled. Controls are
