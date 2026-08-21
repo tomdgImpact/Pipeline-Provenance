@@ -141,10 +141,26 @@ code — only actions pinned by digest. The signing identity is not reachable fr
 anything the caller controls.
 
 A warning in this document would not have been a fix. The property is enforced
-by `tests/e2e/test_shipped_workflow.py::test_no_job_both_runs_caller_code_and_can_sign`,
-which fails if any job ever again holds a signing scope while interpolating a
-caller input into a `run:` step. It was confirmed to fail against the defective
-workflow before being committed.
+by `tests/security/test_signing_identity_isolation.py`, which runs in the
+adversarial corpus — its own blocking CI step, which fails if the suite collects
+nothing or skips anything. It fails if **any** job in **any** shipped workflow
+holds `id-token: write` or `attestations: write` while a caller-supplied input
+reaches execution: in a `run:` block, through a job- or step-level `env:` value
+(a caller who writes `PATH` or `BASH_ENV` chooses what a later step runs), or
+through a `with:` input to one of this repository's own composite actions, which
+interpolate their inputs into `run:` blocks. It was run against the defective
+workflow at commit `af740da^` and fails there, naming the offending `Build` step;
+a companion test asserts the converse, that the job which does run the caller's
+command holds no write scope at all. `tests/e2e/test_shipped_workflow.py` asserts
+the same split as part of the shipped workflow's shape.
+
+Two things that test does **not** establish, named so its green is not read as
+covering them. A caller-supplied value passed to a digest-pinned *third-party*
+action is not flagged, because whether it reaches a shell is a property of that
+action which a static check cannot see. And `runs-on: ${{ inputs.runs-on }}`
+is not flagged: a caller pointing the attesting job at a runner they control is
+a real exposure, but it is **T-11** — documented, explicitly not enforced, and
+already carried as residual in the *Hosted* row of §3.1.
 
 **Status:** *Provenance is Unforgeable* is no longer failed by this arrangement.
 It is not therefore claimed as satisfied — see §3.3, which remains open, and §2
