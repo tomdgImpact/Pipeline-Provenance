@@ -77,6 +77,14 @@ jobs:
   # ---------------------------------------------------------------------------
   # Hermetic build. No ambient long-lived credentials, egress denied by default,
   # and it does not start unless the gate passed.
+  #
+  # This job runs `inputs.build-command`, which is arbitrary code supplied by
+  # the caller. It therefore holds NO signing scope. GitHub exposes
+  # ACTIONS_ID_TOKEN_REQUEST_TOKEN to every step of a job that has
+  # `id-token: write`, so a job that both runs caller-supplied code and holds
+  # that scope lets the build mint an attestation under this workflow's
+  # identity — threat model T-13, built by our own hand. The split below is the
+  # structural fix; a warning in the documentation would not have been one.
   # ---------------------------------------------------------------------------
   build:
     name: hermetic build
@@ -85,8 +93,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     steps:
       - uses: ./.github/actions/egress-guard
         with:
@@ -96,37 +102,69 @@ jobs:
           persist-credentials: false
       - name: Build
         run: ${{ inputs.build-command }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unattested-build-output
+          path: ${{ inputs.artifact-path }}
+          retention-days: 1
 
-      # -----------------------------------------------------------------------
-      # Attestation. Provenance and SBOM are emitted together; a build that
-      # produces one without the other fails, because a consumer's policy needs
-      # both to answer both questions.
-      # -----------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # Attestation, in a job that runs no caller-supplied code. Its only inputs are
+  # the artifact produced above and actions pinned by digest, so the signing
+  # identity is not reachable from anything the caller controls.
+  # ---------------------------------------------------------------------------
+  attest:
+    name: attest
+    needs: [build]
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: ./.github/actions/egress-guard
+        with:
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            fulcio.sigstore.dev:443
+            rekor.sigstore.dev:443
+            tuf-repo-cdn.sigstore.dev:443
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: unattested-build-output
+          path: dist
+
       - uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           format: cyclonedx-json
           output-file: sbom.cdx.json
       - uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
-          subject-path: ${{ inputs.artifact-path }}
+          subject-path: dist/*
+
+      # The attestation set is atomic: half of it is not a weaker guarantee, it
+      # is a different and useless one.
       - name: Fail unless both attestation documents exist
         run: |
           test -s sbom.cdx.json || {
             echo "::error::SBOM missing. The attestation set is atomic."
             exit 1
           }
-      # Advisory only. This runs inside the build job — the untrusted execution
-      # context the whole design assumes is compromised — so it shortens the
-      # feedback loop and proves nothing. The decision is made at the admission
-      # point (ADR-0004), which is the consumer's, not ours.
-      - name: Advisory attestation check
+
+      # Advisory only. This runs inside CI, not at the admission point, so it
+      # shortens the feedback loop and proves nothing (ADR-0004). The decision
+      # belongs to whoever consumes the artifact.
+      - name: Advisory note
         run: |
-          echo "::notice title=Advisory::Build-time verification proves nothing;" \
-               "the decision belongs at the admission point (ADR-0004)."
+          echo "::notice title=Advisory::Verify at your admission point." \
+               "Build-time verification proves nothing (ADR-0004)."
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-output
           path: |
-            ${{ inputs.artifact-path }}
+            dist
             sbom.cdx.json
           retention-days: 14
