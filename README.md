@@ -15,6 +15,53 @@ provenance, admission-time verification, and a demonstrated compromise.**
 
 ---
 
+## Quickstart
+
+Python 3.12+ and [uv](https://docs.astral.sh/uv/). Nothing else — no account, no
+API key, no service.
+
+```bash
+git clone https://github.com/tomdgImpact/Pipeline-Provenance
+cd Pipeline-Provenance
+uv tool install .
+
+ppv audit /path/to/your/repository
+```
+
+What that prints, against a repository that pinned its actions and stopped there:
+
+```text
+  [FAIL] I1  Nothing runs unpinned
+  [FAIL] I2  Secrets are scoped to the job that needs them
+  [FAIL] I3  Every artifact carries verifiable provenance
+  [FAIL] I4  Egress from build jobs is denied by default
+
+6 finding(s):
+
+  HIGH     I3/no-provenance
+           .github/workflows/build.yml:10
+           Artifact produced without provenance
+           > build:
+           fix: Emit an in-toto SLSA provenance statement for the artifact and sign it under the workflow identity.
+
+  MEDIUM   I2/excessive-permission
+           .github/workflows/build.yml:13
+           Job holds repository write scope
+           > permissions:
+           fix: Move the step that needs write into its own job, or drop the scope. Keep `id-token`/`attestations` for signing only.
+
+  ... 4 more findings, most severe first
+```
+
+`ppv audit . --format html -o report.html` produces the same result as one
+self-contained file that renders with the network disabled. `--format sarif`
+sends it to code scanning. `ppv gate .` turns it into a blocking CI check.
+
+Full instructions, prerequisites and troubleshooting:
+**[`docs/INSTALL.md`](docs/INSTALL.md)**.
+
+---
+
 ## The thesis
 
 The build pipeline is the largest unaudited attack surface in most
@@ -264,6 +311,7 @@ Read this section before the rest.
 
 | Document | What it holds |
 |---|---|
+| [`docs/INSTALL.md`](docs/INSTALL.md) | Prerequisites, the three install paths, verification, troubleshooting |
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Trust boundaries, STRIDE, the attack table, accepted residual risk |
 | [`docs/ENGINEERING_PRINCIPLES.md`](docs/ENGINEERING_PRINCIPLES.md) | The rules a change is reviewed against |
 | [`docs/adr/`](docs/adr/) | Why digest pinning, keyless signing, admission-time verification, and what reproducibility is not |
@@ -273,6 +321,8 @@ Read this section before the rest.
 | [`ROADMAP.md`](ROADMAP.md) | Phases with exit criteria |
 
 ## Local development
+
+See [`docs/INSTALL.md`](docs/INSTALL.md) for prerequisites.
 
 ```bash
 make install        # project plus development dependencies
