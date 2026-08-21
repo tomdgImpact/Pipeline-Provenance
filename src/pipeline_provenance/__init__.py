@@ -7,7 +7,7 @@ and the reusable workflow: the four structural invariants described in
 
 __all__ = ["__version__", "SCHEMA_VERSION"]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 #: Version of the ``AuditResult`` document produced by this package. Consumers
 #: gate on this, not on ``__version__``.

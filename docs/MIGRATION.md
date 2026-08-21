@@ -4,6 +4,14 @@ Written for someone with an existing repository and no appetite for a rewrite.
 The order matters: every step below is reversible, and none of them blocks a
 merge until you decide it should.
 
+> **If you are already pinned to `27609c6e…` (v0.1.0), re-pin to the SHA used
+> below.** In v0.1.0 the reusable workflow ran `build-command` — code you
+> supply — in the same job that held `id-token: write`, so that command could
+> request the signing token and obtain an attestation under the workflow's
+> identity. Threat model **T-13**. v0.1.1 runs your command in a job holding no
+> write scope and attests from a separate job. The composite actions are
+> unaffected; re-pinning them is only to keep one SHA across the file.
+
 ## 0. See your own finding list first
 
 ```bash
@@ -47,12 +55,12 @@ Add `persist-credentials: false` to every checkout while you are in the file.
 ## 3. Add the egress guard
 
 This project's own references are pinned by commit SHA for the same reason
-yours are: `v0.1.0` is a pointer we could move under you, and the commit is
+yours are: `v0.1.1` is a pointer we could move under you, and the commit is
 not.
 
 ```yaml
     steps:
-      - uses: tomdgImpact/Pipeline-Provenance/.github/actions/egress-guard@27609c6e5c3896d6bb8255571c353f32160e8036 # v0.1.0
+      - uses: tomdgImpact/Pipeline-Provenance/.github/actions/egress-guard@f9ac3f27c8c3d4ee2853b3d0038ce7347228fc9a # v0.1.1
         with:
           allowed-endpoints: >
             pypi.org:443
@@ -68,7 +76,7 @@ period as `I4/egress-audit-only`, correctly — it is telemetry until it blocks.
 ## 4. Turn the gate on, without blocking anyone yet
 
 ```yaml
-      - uses: tomdgImpact/Pipeline-Provenance/.github/actions/policy-gate@27609c6e5c3896d6bb8255571c353f32160e8036 # v0.1.0
+      - uses: tomdgImpact/Pipeline-Provenance/.github/actions/policy-gate@f9ac3f27c8c3d4ee2853b3d0038ce7347228fc9a # v0.1.1
         with:
           fail-on: critical
 ```
@@ -84,7 +92,7 @@ Adopt the reusable workflow, or lift its attestation steps:
 ```yaml
 jobs:
   build:
-    uses: tomdgImpact/Pipeline-Provenance/.github/workflows/hardened-build.yml@27609c6e5c3896d6bb8255571c353f32160e8036 # v0.1.0
+    uses: tomdgImpact/Pipeline-Provenance/.github/workflows/hardened-build.yml@f9ac3f27c8c3d4ee2853b3d0038ce7347228fc9a # v0.1.1
     with:
       allowed-endpoints: "pypi.org:443 files.pythonhosted.org:443"
       build-command: "python -m build"

@@ -6,7 +6,7 @@ provenance, admission-time verification, and a demonstrated compromise.**
 [![ci](https://github.com/tomdgImpact/Pipeline-Provenance/actions/workflows/ci.yml/badge.svg)](https://github.com/tomdgImpact/Pipeline-Provenance/actions/workflows/ci.yml)
 [![licence](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE)
 
-> **Status: v0.1.0.** All five phases of [`ROADMAP.md`](ROADMAP.md) have landed:
+> **Status: v0.1.1.** All five phases of [`ROADMAP.md`](ROADMAP.md) have landed:
 > the audit CLI, the hardened reusable workflow, admission-time verification,
 > the three-act demonstration, and the measurements below. Every figure quoted
 > here carries the corpus, the method and the date it was measured on, and the
