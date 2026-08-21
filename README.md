@@ -116,21 +116,28 @@ has code execution could disable them.
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    source(["source"]) --> gate{{"policy gate"}}
+    gate -->|"gate completes before any third-party step runs"| build
+
+    subgraph untrusted ["UNTRUSTED EXECUTION CONTEXT"]
+        build["hermetic build"]
+    end
+
+    build -->|"artifact"| attest["attest"]
+    attest -->|"artifact + signed provenance"| verify{"verify"}
+    verify -->|"admitted"| deploy(["deploy"])
 ```
-source ──▶ [ policy gate ]   pinning check, permissions lint, egress policy
-                 │           runs to completion before any third-party step
-                 ▼
-           [ hermetic build ]   no ambient credentials, allowlisted egress
-                 │              UNTRUSTED EXECUTION CONTEXT
-                 ▼
-           [ attest ]        SLSA provenance + CycloneDX SBOM,
-                 │           cosign keyless signature bound to workflow identity
-                 ▼
-           [ verify ]        admission-time: signature, provenance predicate,
-                 │           expected signer identity, SBOM policy
-                 ▼
-           [ deploy ]
-```
+
+- **policy gate** — pinning check, permissions lint, egress policy. Runs to
+  completion before any third-party step.
+- **hermetic build** — no ambient credentials, allowlisted egress. This is the
+  untrusted execution context: assume arbitrary code runs here.
+- **attest** — SLSA provenance + CycloneDX SBOM, cosign keyless signature bound
+  to workflow identity.
+- **verify** — admission-time: signature, provenance predicate, expected signer
+  identity, SBOM policy.
 
 ## What ships
 
