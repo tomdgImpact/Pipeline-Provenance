@@ -7,6 +7,7 @@ files this repository actually ships, not against fixtures.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -267,6 +268,35 @@ class TestSelfAudit:
         assert statuses["I3"] is Status.UNVERIFIED
 
 
+def _newest_record(repo_root: Path, family: str) -> dict[str, Any]:
+    """The most recent published figure of a given family.
+
+    Records are re-measured and re-dated rather than edited in place, so these
+    tests must follow the newest one. Hardcoding a date is how a test keeps
+    passing against a record the README no longer quotes — which is exactly the
+    drift that shipped an out-of-date performance table at v0.1.0.
+    """
+    published = sorted(
+        (repo_root / "benchmarks" / "published").glob(f"{family}-*.json")
+    )
+    assert published, f"no published {family} record"
+    return dict(json.loads(published[-1].read_text()))
+
+
+def _readme_table(readme: str, heading: str) -> list[list[str]]:
+    """Rows of the first markdown table under ``heading``."""
+    section = readme[readme.index(heading) :]
+    rows: list[list[str]] = []
+    for line in section.splitlines()[1:]:
+        if line.startswith("|"):
+            cells = [cell.strip() for cell in line.strip("|").split("|")]
+            if not all(set(cell) <= set("-: ") for cell in cells):
+                rows.append(cells)
+        elif rows:
+            break
+    return rows[1:]
+
+
 class TestPublishedClaims:
     """Every number in the README must be re-derivable from the harness.
 
@@ -281,39 +311,55 @@ class TestPublishedClaims:
     def test_the_detection_figures_match_the_published_record(
         self, repo_root: Path, readme: str
     ) -> None:
-        import json
-
-        published = json.loads(
-            (
-                repo_root / "benchmarks" / "published" / "detection-2026-08-20.json"
-            ).read_text()
-        )
+        published = _newest_record(repo_root, "detection")
         assert published["sc_001_detection"]["precision"] == 1.0
         assert published["sc_001_detection"]["recall"] == 1.0
-        assert published["corpus"]["declared_defects"] == 30
-        assert "30 declared defects" in readme
+        declared = published["corpus"]["declared_defects"]
+        assert f"{declared} declared defects" in readme
 
     def test_the_distribution_figures_match_the_published_record(
         self, repo_root: Path, readme: str
     ) -> None:
-        import json
-
-        published = json.loads(
-            (
-                repo_root / "benchmarks" / "published" / "distribution-2026-08-20.json"
-            ).read_text()
-        )
-        examined = published["sample"]["examined"]
-        assert (
-            f"{examined} widely-used open-source projects"
-            in readme.replace("Fourteen", "14")
-            or "Fourteen widely-used open-source projects" in readme
-        )
+        published = _newest_record(repo_root, "distribution")
         assert published["sample"]["workflow_files"] == 101
-        assert "101\nworkflow files" in readme or "101 workflow files" in readme
+        assert "101 workflow files" in readme.replace("\n", " ")
+
+    def test_every_performance_row_matches_the_published_record(
+        self, repo_root: Path, readme: str
+    ) -> None:
+        """The one that was missing.
+
+        The detection figures had a test binding them to the record; the
+        performance table did not, so it quoted a run from before the release
+        while the committed record held another. Every cell is now compared,
+        not just the headline.
+        """
+        published = _newest_record(repo_root, "performance")
+        measurements = {m["target"]: m for m in published["measurements"]}
+        labels = {
+            "This repository": "Pipeline-Provenance",
+            "`monorepo` fixture": "monorepo",
+            "`naive` fixture": "naive",
+        }
+
+        rows = _readme_table(readme, "### Audit performance")
+        assert rows, "no performance table found in the README"
+
+        for target, workflows, median, p95 in rows:
+            measured = measurements[labels[target]]
+            assert int(workflows) == measured["workflows"], target
+            assert str(measured["median_ms"]) in median, target
+            assert str(measured["p95_ms"]) in p95, target
+
+    def test_the_performance_table_names_the_machine_it_ran_on(
+        self, repo_root: Path, readme: str
+    ) -> None:
+        """A timing without its hardware is one nobody can reproduce."""
+        published = _newest_record(repo_root, "performance")
+        assert published["machine"]["platform"] in readme
 
     def test_every_published_number_names_its_date(self, readme: str) -> None:
-        assert readme.count("measured 2026-08-20") >= 2
+        assert readme.count("measured 2026-08-2") >= 3
 
     def test_the_limitations_section_is_still_there(self, readme: str) -> None:
         """It is a mandatory deliverable, and the section most likely to be
