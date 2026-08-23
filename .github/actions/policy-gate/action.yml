@@ -13,6 +13,13 @@ inputs:
     description: Lowest severity that fails the gate.
     required: false
     default: low
+  invariants:
+    description: >
+      Whitespace-separated invariants to block on, e.g. "I1 I2". Default: all
+      four. Everything is audited and reported either way; this only changes
+      what fails the build, and a narrowed run states what it did not enforce.
+    required: false
+    default: ""
   allow-unverified:
     description: >
       Permit invariants the gate could not assess. Off by default: a gate that
@@ -41,6 +48,9 @@ runs:
       run: |
         set -o pipefail
         args=(--fail-on "${{ inputs.fail-on }}")
+        for invariant in ${{ inputs.invariants }}; do
+          args+=(--invariant "${invariant}")
+        done
         if [ "${{ inputs.allow-unverified }}" = "true" ]; then
           args+=(--allow-unverified)
         fi

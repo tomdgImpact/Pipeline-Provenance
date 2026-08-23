@@ -174,6 +174,12 @@ class TestGateDefaults:
         action = _YAML.load((ACTIONS / "policy-gate" / "action.yml").read_text())
         assert action["inputs"]["fail-on"]["default"] == "low"
 
+    def test_the_gate_enforces_all_four_invariants_by_default(self) -> None:
+        """Narrowing the scope must be something a consumer opts into. A gate
+        that shipped covering one invariant would be read as covering four."""
+        action = _YAML.load((ACTIONS / "policy-gate" / "action.yml").read_text())
+        assert action["inputs"]["invariants"]["default"] == ""
+
 
 def test_the_migration_path_is_documented() -> None:
     """A control nobody can adopt is a control nobody has."""
