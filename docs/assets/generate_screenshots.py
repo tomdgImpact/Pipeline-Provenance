@@ -22,6 +22,8 @@ both colour schemes. Three choices in here are deliberate:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -33,6 +35,7 @@ from pipeline_provenance.report import html_out
 REPOSITORY = Path(__file__).resolve().parents[2]
 FIXTURE = REPOSITORY / "tests" / "fixtures" / "repos" / "naive"
 ASSETS = REPOSITORY / "docs" / "assets"
+MANIFEST = ASSETS / "manifest.json"
 
 # Pinned so that regenerating from unchanged input yields an unchanged image.
 GENERATED_AT = "2026-08-21T00:00:00Z"
@@ -50,6 +53,28 @@ BOTTOM_MARGIN = 12
 # Keeping each file well under half a megabyte: a README should not cost a
 # megabyte of images to open.
 SIZE_BUDGET = 400 * 1024
+
+
+def canonical_report_html(destination: Path) -> str:
+    """The report these screenshots photograph, with its location removed.
+
+    The report header prints the absolute path of the audited tree, so the raw
+    HTML differs depending on where it was rendered. Replacing that path with a
+    placeholder makes the digest describe the *report* — the template, the rule
+    set, the fixture — and not the machine. That is what the staleness check
+    needs to compare: a screenshot goes out of date when the report changes, not
+    when it is regenerated somewhere else.
+    """
+    target = destination / "tests" / "fixtures" / "repos" / FIXTURE.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(FIXTURE, target, dirs_exist_ok=True)
+
+    result = audit(target, generated_at=GENERATED_AT)
+    return html_out.render(result).replace(target.resolve().as_posix(), "<TARGET>")
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def _render_report(destination: Path) -> Path:
@@ -109,16 +134,52 @@ def _capture(browser: Browser, report: Path, scheme: str, output: Path) -> None:
     print(f"wrote {output.relative_to(REPOSITORY)} ({size} bytes, {height}px tall)")
 
 
+def _write_manifest(images: list[Path], report_digest: str) -> None:
+    """Record what these images are photographs of.
+
+    Without this, nothing connects the committed PNGs to the report they show,
+    and the pair silently drifts apart the first time the template or a rule
+    changes. The digest is the link, and `tests/security/test_screenshot_freshness.py`
+    is what makes the link load-bearing.
+    """
+    MANIFEST.write_text(
+        json.dumps(
+            {
+                "fixture": FIXTURE.relative_to(REPOSITORY).as_posix(),
+                "generated_at": GENERATED_AT,
+                "viewport_width": WIDTH,
+                "findings_shown": FINDINGS_SHOWN,
+                "report_sha256": report_digest,
+                "images": {
+                    image.name: {
+                        "sha256": digest(image.read_bytes()),
+                        "bytes": image.stat().st_size,
+                    }
+                    for image in sorted(images)
+                },
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    print(f"wrote {MANIFEST.relative_to(REPOSITORY)}")
+
+
 def main() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
     shutil.rmtree(WORKSPACE, ignore_errors=True)
     try:
         report = _render_report(WORKSPACE)
+        written: list[Path] = []
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
             for scheme in ("light", "dark"):
-                _capture(browser, report, scheme, ASSETS / f"report-{scheme}.png")
+                output = ASSETS / f"report-{scheme}.png"
+                _capture(browser, report, scheme, output)
+                written.append(output)
             browser.close()
+        shutil.rmtree(WORKSPACE, ignore_errors=True)
+        _write_manifest(written, digest(canonical_report_html(WORKSPACE).encode()))
     finally:
         shutil.rmtree(WORKSPACE, ignore_errors=True)
 

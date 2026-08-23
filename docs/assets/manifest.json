@@ -1,0 +1,17 @@
+{
+  "fixture": "tests/fixtures/repos/naive",
+  "generated_at": "2026-08-21T00:00:00Z",
+  "viewport_width": 1280,
+  "findings_shown": 3,
+  "report_sha256": "64570923e8e3b81669c2ebeb7a2eec234190ccfc089ec85ea1c5bab275424b21",
+  "images": {
+    "report-dark.png": {
+      "sha256": "202ab8e0e98e893a941a08eff8623476568034ccb9924ccb230c12e8018980eb",
+      "bytes": 209174
+    },
+    "report-light.png": {
+      "sha256": "fa2a916c744c7c39b2fe870cef7473d322f8a65fea79fbfe886b111b13f29a5f",
+      "bytes": 206937
+    }
+  }
+}
