@@ -12,6 +12,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Re-running a run replays the original run's context, including the
+  # repository visibility recorded at the time. A control whose enforcement
+  # depends on that — the egress policy does — therefore cannot be re-tested by
+  # a rerun. This lets a fresh run be triggered without an empty commit.
+  workflow_dispatch:
 
 # Deny by default at the top level. Each job re-declares exactly what it needs.
 permissions: {}
