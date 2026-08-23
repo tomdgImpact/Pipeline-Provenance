@@ -46,15 +46,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -77,15 +76,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -107,15 +105,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -140,10 +137,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
             cdn.playwright.dev:443
             playwright.azureedge.net:443
             azure.archive.ubuntu.com:80
@@ -151,6 +152,7 @@ jobs:
             security.ubuntu.com:80
             esm.ubuntu.com:443
             motd.ubuntu.com:443
+            ppa.launchpadcontent.net:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -189,10 +191,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -222,15 +228,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -257,15 +262,15 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
             semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -298,15 +303,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
@@ -328,15 +332,17 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
             ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
             mirror.gcr.io:443
+            pkg-containers.githubusercontent.com:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -363,15 +369,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
-            ghcr.io:443
-            pkg-containers.githubusercontent.com:443
-            semgrep.dev:443
-            mirror.gcr.io:443
       - name: Fail unless every gate succeeded
         run: |
           if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "true" ]; then

@@ -28,10 +28,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
@@ -59,10 +63,14 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            releases.astral.sh:443
+            astral.sh:443
             pypi.org:443
             files.pythonhosted.org:443
-            astral.sh:443
             fulcio.sigstore.dev:443
             rekor.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
