@@ -147,18 +147,17 @@ jobs:
             files.pythonhosted.org:443
             cdn.playwright.dev:443
             playwright.azureedge.net:443
-            azure.archive.ubuntu.com:80
-            archive.ubuntu.com:80
-            security.ubuntu.com:80
-            esm.ubuntu.com:443
-            motd.ubuntu.com:443
-            ppa.launchpadcontent.net:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - run: uv sync --all-extras --locked
-      - run: uv run python -m playwright install --with-deps chromium
+      # No --with-deps: it runs apt-get update, which queries every APT source
+      # on the runner image, including packages.microsoft.com and dl.google.com.
+      # Widening the allowlist so an unnecessary step can succeed is how an
+      # egress policy becomes decorative. The ubuntu-24.04 image already carries
+      # the libraries Playwright's chromium needs.
+      - run: uv run python -m playwright install chromium
       - name: Browser suite
         run: uv run pytest -m gui --junitxml=gui.xml
       # The report itself is asserted to make no outbound request; the suite
