@@ -85,6 +85,19 @@ Raise the bar as the list shrinks: `critical` → `high` → `medium` → `low`.
 Moving the threshold is one line and one pull request, which is the point: the
 decision to accept a class of finding is visible in history.
 
+There is a second, usually better axis. Enforce the invariants you have actually
+finished rather than a severity band that cuts across all four:
+
+```yaml
+        with:
+          invariants: "I1 I2"
+```
+
+Everything is still audited and reported; only what blocks changes. A run
+narrowed this way says so in its verdict — `gate: passed for I1, I2. NOT
+enforced: I3, I4` — because a green tick on a quarter of the controls would be
+read downstream as compliance.
+
 ## 5. Emit attestations
 
 Adopt the reusable workflow, or lift its attestation steps:

@@ -81,3 +81,82 @@ class TestNothingToAudit:
         code, output = _gate(str(FIXTURES / "no-workflows"))
         assert code == 2
         assert "This is not a pass" in output
+
+
+class TestInvariantScope:
+    """`--invariant` narrows what blocks, never what is reported."""
+
+    def test_scoping_to_a_clean_invariant_passes(self) -> None:
+        code, output = _gate(
+            str(FIXTURES / "partial"), "--invariant", "I1", "--fail-on", "critical"
+        )
+        assert code == 0
+        assert "gate: passed for I1." in output
+
+    def test_scoping_to_a_failing_invariant_still_fails(self) -> None:
+        code, output = _gate(str(FIXTURES / "partial"), "--invariant", "I3")
+        assert code == 1
+        assert "in I3" in output
+
+    def test_findings_outside_the_scope_are_still_reported(self) -> None:
+        """Narrowing the gate must not narrow the finding list. A team that
+        gates on I1 alone still needs to see what I2 through I4 found."""
+        _, output = _gate(
+            str(FIXTURES / "partial"), "--invariant", "I1", "--fail-on", "critical"
+        )
+        assert "I3/no-provenance" in output
+        assert "I4/no-egress-policy" in output
+
+    def test_a_narrowed_pass_says_what_it_did_not_enforce(self) -> None:
+        """The whole risk of a partial gate: a green tick that reads as
+        compliance. The verdict line names the gap."""
+        _, output = _gate(
+            str(FIXTURES / "partial"), "--invariant", "I1", "--fail-on", "critical"
+        )
+        assert "NOT enforced: I2, I3, I4" in output
+        assert "5 finding(s) reported and not blocked" in output
+
+    def test_a_narrowed_failure_also_says_what_it_did_not_enforce(self) -> None:
+        """Printed on both paths. A reader who sees only the verdict must not be
+        able to mistake a partial gate for a full one either way."""
+        _, output = _gate(str(FIXTURES / "partial"), "--invariant", "I3")
+        assert "NOT enforced:" in output
+
+    def test_several_invariants_can_be_enforced_together(self) -> None:
+        code, output = _gate(
+            str(FIXTURES / "partial"),
+            "--invariant",
+            "I1",
+            "--invariant",
+            "I2",
+            "--fail-on",
+            "critical",
+        )
+        assert code == 0
+        assert "NOT enforced: I3, I4" in output
+
+    def test_the_default_enforces_all_four_and_says_nothing_extra(self) -> None:
+        """An unnarrowed gate must not print a scope caveat it does not need."""
+        _, output = _gate(str(FIXTURES / "hardened"))
+        assert "NOT enforced" not in output
+        assert "gate: passed." in output
+
+    def test_an_unknown_invariant_is_rejected(self) -> None:
+        code, output = _gate(str(FIXTURES / "partial"), "--invariant", "I9")
+        assert code != 0
+        assert "I9" in output
+
+    def test_unverified_checks_outside_the_scope_do_not_block(self) -> None:
+        """`partial` carries an unverified I3 finding. Gating on I1 alone must
+        not fail on it, or the narrowing would be meaningless."""
+        code, _ = _gate(
+            str(FIXTURES / "partial"), "--invariant", "I1", "--fail-on", "critical"
+        )
+        assert code == 0
+
+    def test_unverified_checks_inside_the_scope_still_block(self) -> None:
+        code, output = _gate(
+            str(FIXTURES / "partial"), "--invariant", "I3", "--fail-on", "critical"
+        )
+        assert code == 1
+        assert "could not be completed" in output

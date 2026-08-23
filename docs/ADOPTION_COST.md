@@ -295,9 +295,9 @@ refactor that reintroduces the risk and a missing import does not.
 The consequence is worth stating plainly to anyone approving this adoption: a
 hatch that is easy to reach gets reached, and a control everyone has learned to
 silence is a control in name only. The awkwardness is the mechanism. It is also
-a real cost — the coarse `--fail-on` band means one unfixable finding can hold
-an entire severity level hostage, and the tool has no per-invariant threshold to
-offer instead (§6).
+a real cost — a coarse `--fail-on` band means one unfixable finding can hold an
+entire severity level hostage. `--invariant` is the narrower axis to reach for
+first: it scopes what blocks without silencing what is reported (§6).
 
 ---
 
@@ -479,11 +479,27 @@ number, not a retired threat row. A finding list that nobody acts on is
 expensive in a different currency — the second time a team looks at an unchanged
 list, they stop looking.
 
-**The honest limitation of this recommendation.** A team that adopts only I1
-cannot gate only I1. The threshold is severity-based, not invariant-based, so
-the closest expressible position is `--fail-on critical`, which blocks almost
-nothing (§4), or `--fail-on high`, which also starts blocking
-`I2/implicit-token-scope` and `I3/no-provenance`. Per-invariant thresholds do
-not exist in this tool today. A team that wants I1 enforced and nothing else
-should run the gate non-blocking and read the trend until it is ready for the
-`high` band.
+**How to enforce exactly this and nothing else.** Scope the gate to the
+invariant you have actually adopted:
+
+```bash
+ppv gate . --invariant I1
+```
+
+Everything is still audited and every finding is still printed — narrowing the
+gate does not narrow the report. What changes is what fails the build. The
+verdict line names the gap on both the passing and the failing path:
+
+```
+gate: enforcing I1 only. NOT enforced: I2, I3, I4 — 5 finding(s) reported and not blocked.
+gate: passed for I1.
+```
+
+That wording is deliberate. `gate: passed` on a gate covering one invariant of
+four would be read as compliance by everyone downstream of it, which is the
+failure this whole project argues against. A partial gate is a legitimate
+adoption step; a partial gate that looks like a full one is not.
+
+Add invariants to the flag as you adopt them. `--fail-on` still applies within
+the scope, so the two axes compose: `--invariant I1 --invariant I2 --fail-on
+high` enforces the two you have done, at the band you can hold.

@@ -23,6 +23,7 @@ from pipeline_provenance.model import (
     Assessment,
     AuditResult,
     ExitCode,
+    Invariant,
     Severity,
     Status,
 )
@@ -173,6 +174,16 @@ def audit(path: Path, output_format: str, output: Path | None, remote: bool) -> 
     help="Lowest severity that fails the gate. Default: everything fails it.",
 )
 @click.option(
+    "--invariant",
+    "selected",
+    multiple=True,
+    type=click.Choice([invariant.value for invariant in Invariant]),
+    help=(
+        "Block only on these invariants. Repeatable. Default: all four. "
+        "Everything is still reported; this changes what fails the build."
+    ),
+)
+@click.option(
     "--allow-unverified/--no-allow-unverified",
     default=False,
     help=(
@@ -180,15 +191,25 @@ def audit(path: Path, output_format: str, output: Path | None, remote: bool) -> 
         "that passes on 'I could not tell' is not a gate."
     ),
 )
-def gate(path: Path, fail_on: str, allow_unverified: bool) -> None:
+def gate(
+    path: Path, fail_on: str, selected: tuple[str, ...], allow_unverified: bool
+) -> None:
     """Fail the build unless PATH satisfies the four invariants.
 
     Reports every violation in one run rather than stopping at the first, so a
     team migrating an existing repository sees the whole list instead of
     entering a fail-fix loop they abandon on the fourth iteration.
+
+    `--invariant` narrows what blocks without narrowing what is reported. A
+    partial gate is a real adoption step; a partial gate that looks like a full
+    one is a lie, so a narrowed run says on every line what it did not enforce.
     """
     result = run_audit(path)
     threshold = Severity(fail_on)
+    enforced = (
+        tuple(Invariant(value) for value in selected) if selected else tuple(Invariant)
+    )
+    unenforced = tuple(i for i in Invariant if i not in enforced)
 
     if not result.workflows_examined:
         click.echo("gate: nothing to audit — no workflow definitions found.", err=True)
@@ -200,35 +221,52 @@ def gate(path: Path, fail_on: str, allow_unverified: bool) -> None:
 
     click.echo(render_text(result), nl=False)
 
+    in_scope = [f for f in result.findings if f.invariant in enforced]
     blocking = [
         finding
-        for finding in result.findings
+        for finding in in_scope
         if finding.assessment is Assessment.VERIFIED
         and finding.severity.rank <= threshold.rank
     ]
     unverified = [
-        finding
-        for finding in result.findings
-        if finding.assessment is Assessment.UNVERIFIED
+        finding for finding in in_scope if finding.assessment is Assessment.UNVERIFIED
     ]
+    ignored = [f for f in result.findings if f.invariant not in enforced]
 
     click.echo("")
+    scope = ", ".join(i.value for i in enforced)
+
+    if unenforced:
+        # Printed whether the gate passes or fails. A reader who sees only the
+        # verdict must not be able to mistake a partial gate for a full one.
+        click.echo(
+            f"gate: enforcing {scope} only. "
+            f"NOT enforced: {', '.join(i.value for i in unenforced)}"
+            + (
+                f" — {len(ignored)} finding(s) reported and not blocked."
+                if ignored
+                else " — no findings there in this run."
+            )
+        )
+
     if blocking:
         click.echo(
-            f"gate: FAILED — {len(blocking)} violation(s) at {fail_on} or above.",
+            f"gate: FAILED — {len(blocking)} violation(s) in {scope} "
+            f"at {fail_on} or above.",
             err=True,
         )
     if unverified and not allow_unverified:
         click.echo(
-            f"gate: FAILED — {len(unverified)} check(s) could not be completed. "
-            "Pass --allow-unverified to accept that, deliberately and in writing.",
+            f"gate: FAILED — {len(unverified)} check(s) in {scope} could not be "
+            "completed. Pass --allow-unverified to accept that, deliberately "
+            "and in writing.",
             err=True,
         )
 
     if blocking or (unverified and not allow_unverified):
         sys.exit(ExitCode.FINDINGS)
 
-    click.echo("gate: passed.")
+    click.echo(f"gate: passed for {scope}." if unenforced else "gate: passed.")
     sys.exit(ExitCode.CLEAN)
 
 

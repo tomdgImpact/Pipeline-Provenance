@@ -366,6 +366,7 @@ ppv audit .                          # human-readable, offline
 ppv audit . --format html -o r.html  # one self-contained file, no network
 ppv audit . --format sarif -o r.sarif
 ppv gate .                           # fail the build on any violation
+ppv gate . --invariant I1            # ...or only on the ones you have adopted
 ppv verify dist/app.whl --provenance p.json --sbom s.json
 ```
 
