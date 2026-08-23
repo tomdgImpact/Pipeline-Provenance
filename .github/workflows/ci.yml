@@ -54,11 +54,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev,remote]"
-      - run: ruff check --output-format=github .
-      - run: ruff format --check .
-      - run: mypy
+      - run: uv sync --all-extras --locked
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
 
   unit:
     name: unit and end-to-end
@@ -86,10 +85,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev,remote]"
+      - run: uv sync --all-extras --locked
       - name: Unit and end-to-end suites
-        run: pytest -m "not security and not demo and not gui" --cov --cov-report=term-missing
+        run: uv run pytest -m "not security and not demo and not gui" --cov --cov-report=term-missing
 
   adversarial:
     name: adversarial corpus (blocking)
@@ -117,13 +115,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev]"
+      - run: uv sync --all-extras --locked
       - name: Run the adversarial suite
-        run: pytest -m security --junitxml=adversarial.xml
+        run: uv run pytest -m security --junitxml=adversarial.xml
       - name: Assert the suite was non-empty and nothing was skipped
         if: always()
-        run: python scripts/assert_suite_ran.py adversarial.xml 1
+        run: uv run python scripts/assert_suite_ran.py adversarial.xml 1
 
   browser:
     name: html report interface
@@ -153,18 +150,17 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev]"
-      - run: python -m playwright install --with-deps chromium
+      - run: uv sync --all-extras --locked
+      - run: uv run python -m playwright install --with-deps chromium
       - name: Browser suite
-        run: pytest -m gui --junitxml=gui.xml
+        run: uv run pytest -m gui --junitxml=gui.xml
       # The report itself is asserted to make no outbound request; the suite
       # aborts every non-file:// request the page attempts, so a report that
       # grows an external reference fails here rather than passing on a machine
       # that happened to have network access.
       - name: Assert the browser suite was non-empty and nothing was skipped
         if: always()
-        run: python scripts/assert_suite_ran.py gui.xml 1
+        run: uv run python scripts/assert_suite_ran.py gui.xml 1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
@@ -196,13 +192,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev]"
+      - run: uv sync --all-extras --locked
       - name: Run the three acts
-        run: pytest -m demo --junitxml=demo.xml
+        run: uv run pytest -m demo --junitxml=demo.xml
       - name: Assert the demonstration was non-empty and nothing was skipped
         if: always()
-        run: python scripts/assert_suite_ran.py demo.xml 3
+        run: uv run python scripts/assert_suite_ran.py demo.xml 3
       # The assertion above proves the payload behaves as described. This one
       # proves the runner actually refuses an unlisted host, which no test
       # running inside the job could establish on its own.
@@ -235,14 +230,13 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev,remote]"
+      - run: uv sync --all-extras --locked
       # Audited from the committed lockfile rather than from the installed
       # environment. The environment contains this project, which has no PyPI
       # record and would make --strict fail on us instead of on a dependency;
       # more importantly, the lockfile is the thing a build actually resolves.
       - run: uv export --no-emit-project --format requirements-txt --all-extras -o requirements.audit.txt
-      - run: pip-audit --strict --progress-spinner=off -r requirements.audit.txt
+      - run: uv run pip-audit --strict --progress-spinner=off -r requirements.audit.txt
 
   sast:
     name: static application security testing
@@ -271,12 +265,15 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e ".[dev]" semgrep
+      - run: uv sync --all-extras --locked
+      # Pinned by version and installed as an isolated tool rather than as a
+      # project dependency: semgrep is CI tooling, and putting it in the
+      # lockfile would make every developer resolve it to run the tests.
+      - run: uv tool install semgrep==1.174.0
       - name: bandit
-        run: bandit -c pyproject.toml -r src -ll
+        run: uv run bandit -c pyproject.toml -r src -ll
       - name: semgrep
-        run: semgrep scan --error --config policy/semgrep --sarif --output semgrep.sarif src
+        run: semgrep scan --error --metrics=off --config policy/semgrep --sarif --output semgrep.sarif src
       - uses: github/codeql-action/upload-sarif@f3712979fa5f215279b101dd0a2e3bdfb4353324 # v3
         if: always()
         with:

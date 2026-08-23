@@ -36,13 +36,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-      - run: uv python install 3.12
-      - run: uv pip install --system -e "."
+      - run: uv sync --locked
       # The release gates on the project's own tool. An accepted exception is
       # argued in docs/THREAT_MODEL.md section 9; unverified checks are
       # permitted here and only here, because this repository owns no admission
       # point — its consumers do.
-      - run: ppv gate . --fail-on high --allow-unverified
+      - run: uv run ppv gate . --fail-on high --allow-unverified
 
   build:
     name: build and attest
