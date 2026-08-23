@@ -147,11 +147,17 @@ jobs:
             files.pythonhosted.org:443
             cdn.playwright.dev:443
             playwright.azureedge.net:443
+            storage.googleapis.com:443
+            playwright.download.prss.microsoft.com:443
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - run: uv sync --all-extras --locked
+      # cdn.playwright.dev redirects: Chrome for Testing builds come from
+      # storage.googleapis.com and ffmpeg from playwright.download.prss.
+      # microsoft.com, so both hops have to be allowlisted, not just the first.
+      #
       # No --with-deps: it runs apt-get update, which queries every APT source
       # on the runner image, including packages.microsoft.com and dl.google.com.
       # Widening the allowlist so an unnecessary step can succeed is how an
